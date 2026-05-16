@@ -205,7 +205,7 @@
         <label>Contraseña</label>
         <input type="password" id="login-password" placeholder="••••••••">
       </div>
-      <button class="btn btn-primary" id="btn-login">Entrar</button>
+      <button class="btn btn-primary" id="btn-login" onclick="event.preventDefault();login();">Entrar</button>
       <div class="auth-switch">¿No tienes cuenta? <a onclick="showRegister()">Regístrate</a></div>
     </div>
     <div id="register-form" class="hidden">
@@ -221,7 +221,7 @@
         <label>Contraseña</label>
         <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
       </div>
-      <button class="btn btn-primary" id="btn-register">Crear cuenta</button>
+      <button class="btn btn-primary" id="btn-register" onclick="event.preventDefault();register();">Crear cuenta</button>
       <div class="auth-switch">¿Ya tienes cuenta? <a onclick="showLogin()">Inicia sesión</a></div>
     </div>
   </div>
