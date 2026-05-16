@@ -269,19 +269,36 @@ let currentPage = null;
 
 // ─── AUTH ────────────────────────────────────────────────────
 async function login() {
-  const email = document.getElementById('login-email').value;
+  const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-  const { error } = await db.auth.signInWithPassword({ email, password });
-  if (error) showAuthError(error.message);
+  if (!email || !password) return showAuthError('Rellena email y contraseña');
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  if (error) {
+    showAuthError('Email o contraseña incorrectos. Prueba con: StrengthLab2026');
+  } else if (data?.user) {
+    // Ensure profile exists
+    const { data: profile } = await db.from('profiles').select('*').eq('id', data.user.id).single();
+    if (!profile) {
+      await db.from('profiles').insert({ id: data.user.id, email: data.user.email, name: email.split('@')[0], role: 'client' });
+    }
+  }
 }
 
 async function register() {
-  const name = document.getElementById('reg-name').value;
-  const email = document.getElementById('reg-email').value;
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-password').value;
-  const { error } = await db.auth.signUp({ email, password, options: { data: { name } } });
-  if (error) showAuthError(error.message);
-  else showAuthError('Revisa tu email para confirmar la cuenta.', true);
+  if (!name || !email || !password) return showAuthError('Rellena todos los campos');
+  if (password.length < 6) return showAuthError('La contraseña debe tener mínimo 6 caracteres');
+  const { data, error } = await db.auth.signUp({ email, password, options: { data: { name } } });
+  if (error) {
+    showAuthError(error.message);
+  } else if (data?.user) {
+    // Create profile manually in case trigger fails
+    await db.from('profiles').upsert({ id: data.user.id, email, name, role: 'client' });
+    showAuthError('✅ Cuenta creada. Iniciando sesión...', true);
+    setTimeout(() => db.auth.signInWithPassword({ email, password }), 1000);
+  }
 }
 
 async function logout() {
@@ -310,7 +327,12 @@ function showLogin() {
 db.auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
     currentUser = session.user;
-    const { data: profile } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+    let { data: profile } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+    if (!profile) {
+      await db.from('profiles').insert({ id: currentUser.id, email: currentUser.email, name: currentUser.email.split('@')[0], role: 'client' });
+      const { data: newProfile } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+      profile = newProfile;
+    }
     currentProfile = profile;
     initApp();
   } else {
