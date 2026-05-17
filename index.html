@@ -197,6 +197,10 @@
     </div>
     <div id="auth-error" class="error-msg hidden"></div>
     <div id="login-form">
+      <button class="btn" id="btn-google" onclick="loginGoogle()" style="background:#fff;color:#333;border:1.5px solid #E0E0E0;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;">
+        <img src="https://www.google.com/favicon.ico" width="18" height="18"> Entrar con Google
+      </button>
+      <div style="text-align:center;color:#aaa;font-size:12px;margin-bottom:16px;">— o con email —</div>
       <div class="form-group">
         <label>Email</label>
         <input type="email" id="login-email" placeholder="tu@email.com">
@@ -268,6 +272,14 @@ let currentProfile = null;
 let currentPage = null;
 
 // ─── AUTH ────────────────────────────────────────────────────
+async function loginGoogle() {
+  const { error } = await db.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin }
+  });
+  if (error) showAuthError('Error con Google: ' + error.message);
+}
+
 async function login() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
