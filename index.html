@@ -476,6 +476,28 @@ db.auth.onAuthStateChange(async (event, session) => {
 
 // Recover session on page load (handles Google OAuth redirect)
 (async () => {
+  // Handle OAuth callback from URL hash
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    // Let Supabase process the token from the URL
+    const { data, error } = await db.auth.getSession();
+    if (data?.session) {
+      // Clean the URL without reloading
+      window.history.replaceState(null, '', window.location.pathname);
+      return; // onAuthStateChange will handle the rest
+    }
+  }
+  
+  // Also check for error in URL params
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('error')) {
+    showAuthError('Error de autenticación: ' + params.get('error_description'));
+    window.history.replaceState(null, '', window.location.pathname);
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('app-screen').classList.add('hidden');
+    return;
+  }
+
   const { data: { session } } = await db.auth.getSession();
   if (!session) {
     document.getElementById('auth-screen').classList.remove('hidden');
