@@ -386,7 +386,14 @@
 const SUPABASE_URL = 'https://qukebgtjkjeosjycfmkh.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1a2ViZ3Rqa2plb3NqeWNmbWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDAzNDUsImV4cCI6MjA5NDUxNjM0NX0.mh_Q4qKBFtqCJmhHtE8aEZAKp1mX3I7lZR3wBOTBvdc';
 const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    storageKey: 'strengthlab-auth',
+  }
+});
 
 let currentUser = null, currentProfile = null, currentPage = null;
 
@@ -431,21 +438,44 @@ function showLogin() { document.getElementById('register-form').classList.add('h
 
 // ─── INIT ────────────────────────────────────────────────────
 db.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_OUT') {
+    currentUser = null; currentProfile = null;
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('app-screen').classList.add('hidden');
+    return;
+  }
+  if (event === 'TOKEN_REFRESHED') {
+    // Token refreshed silently, no need to reload
+    currentUser = session.user;
+    return;
+  }
   if (session?.user) {
     currentUser = session.user;
-    let { data: profile } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
-    if (!profile) {
-      await db.from('profiles').insert({ id: currentUser.id, email: currentUser.email, name: currentUser.email.split('@')[0], role: 'client' });
-      const { data: np } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
-      profile = np;
+    // Only reload profile if we don't have one or user changed
+    if (!currentProfile || currentProfile.id !== currentUser.id) {
+      let { data: profile } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+      if (!profile) {
+        await db.from('profiles').insert({ id: currentUser.id, email: currentUser.email, name: currentUser.email.split('@')[0], role: 'client' });
+        const { data: np } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+        profile = np;
+      }
+      currentProfile = profile;
+      initApp();
     }
-    currentProfile = profile;
-    initApp();
-  } else {
+  } else if (!currentUser) {
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('app-screen').classList.add('hidden');
   }
 });
+
+// Recover session on page load (handles Google OAuth redirect)
+(async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('app-screen').classList.add('hidden');
+  }
+})();
 
 function initApp() {
   document.getElementById('auth-screen').classList.add('hidden');
