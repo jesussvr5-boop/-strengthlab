@@ -8,19 +8,10 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --dark: #1F3864;
-    --blue: #2E75B6;
-    --light-blue: #D6E4F0;
-    --green: #1E8449;
-    --light-green: #D5F5E3;
-    --orange: #E67E22;
-    --purple: #6C3483;
-    --light-purple: #E8DAEF;
-    --red: #C0392B;
-    --gray: #F5F5F5;
-    --white: #FFFFFF;
-    --text: #2C3E50;
-    --text-light: #7F8C8D;
+    --dark: #1F3864; --blue: #2E75B6; --light-blue: #D6E4F0;
+    --green: #1E8449; --light-green: #D5F5E3; --orange: #E67E22;
+    --purple: #6C3483; --light-purple: #E8DAEF; --red: #C0392B;
+    --gray: #F5F5F5; --white: #FFFFFF; --text: #2C3E50; --text-light: #7F8C8D;
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F0F4F8; color: var(--text); min-height: 100vh; }
 
@@ -119,7 +110,6 @@
   .video-container { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
   .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-  /* LOG WEIGHTS */
   .log-section { margin-top: 12px; }
   .log-title { font-size: 12px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
   .sets-log { display: flex; flex-direction: column; gap: 6px; }
@@ -130,7 +120,6 @@
   .set-input::placeholder { color: #BDC3C7; }
   .btn-save-log { margin-top: 10px; padding: 10px 20px; background: var(--green); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%; }
   .btn-save-log:hover { background: #1A7A40; }
-
   .prev-log { background: var(--light-green); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
   .prev-log-title { font-size: 11px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
   .prev-log-data { font-size: 12px; color: var(--text); }
@@ -178,11 +167,155 @@
   .success-toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 9999; animation: slideIn 0.3s ease; }
   @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
+  /* ── BUILDER NUEVO ────────────────────────────────────────── */
+  .builder-phase-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: white; border-radius: 12px; padding: 14px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+  }
+  .bph-step { display: flex; align-items: center; gap: 8px; }
+  .bph-dot {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; border: 2px solid #E0E0E0;
+    color: var(--text-light); background: var(--gray); transition: .3s;
+  }
+  .bph-dot.active { background: var(--dark); color: white; border-color: var(--dark); }
+  .bph-dot.done { background: var(--green); color: white; border-color: var(--green); }
+  .bph-label { font-size: 13px; font-weight: 600; color: var(--text-light); }
+  .bph-label.active { color: var(--dark); }
+  .bph-sep { flex: 1; height: 2px; background: #E8ECF0; max-width: 48px; }
+
+  .goal-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;
+    margin-bottom: 20px;
+  }
+  .goal-card {
+    background: white; border: 2px solid #E8ECF0; border-radius: 12px;
+    padding: 18px 14px; cursor: pointer; text-align: center; transition: .2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .goal-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+  .goal-card.selected { border-color: var(--dark); background: #EBF5FB; }
+  .goal-card .gc-icon { font-size: 28px; margin-bottom: 8px; }
+  .goal-card .gc-name { font-weight: 700; font-size: 13px; color: var(--dark); }
+  .goal-card .gc-desc { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+  /* Phase 2 builder layout */
+  .builder-layout {
+    display: grid; grid-template-columns: 1fr 320px; gap: 16px;
+    align-items: start;
+  }
+  .builder-left { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; }
+  .builder-left-header {
+    padding: 14px 18px; border-bottom: 1px solid #F0F0F0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .builder-left-header h3 { font-size: 15px; font-weight: 700; color: var(--dark); }
+  .builder-ex-list { min-height: 300px; padding: 12px; }
+  .builder-empty { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 13px; }
+
+  .bex-item {
+    background: #FAFAFA; border: 1.5px solid #E8ECF0; border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px; cursor: grab;
+    transition: .15s; position: relative;
+  }
+  .bex-item:hover { border-color: var(--blue); background: #F0F7FF; }
+  .bex-item.dragging { opacity: .4; }
+  .bex-item.drag-over { border-color: var(--dark); background: #EBF5FB; }
+  .bex-drag { color: #BDC3C7; font-size: 18px; cursor: grab; user-select: none; }
+  .bex-num {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--dark);
+    color: white; font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .bex-info { flex: 1; min-width: 0; }
+  .bex-name { font-weight: 700; font-size: 13px; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bex-sub { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+  .bex-params { font-size: 11px; color: var(--blue); font-weight: 600; margin-top: 3px; }
+  .bex-btn { background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 6px; font-size: 16px; color: var(--text-light); transition: .15s; flex-shrink: 0; }
+  .bex-btn:hover { background: #E8ECF0; color: var(--dark); }
+  .bex-btn.del:hover { background: #FADBD8; color: var(--red); }
+
+  /* Detail inline panel */
+  .bex-detail {
+    background: #EBF5FB; border: 1.5px solid var(--blue); border-radius: 10px;
+    padding: 14px; margin-bottom: 8px;
+  }
+  .bex-detail-title { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+  .bex-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .bex-detail-field { display: flex; flex-direction: column; gap: 3px; }
+  .bex-detail-label { font-size: 10px; color: var(--text-light); text-transform: uppercase; font-weight: 600; }
+  .bex-detail-input {
+    background: white; border: 1.5px solid #E0E0E0; border-radius: 6px;
+    padding: 7px 10px; color: var(--text); font-size: 13px; outline: none; width: 100%;
+  }
+  .bex-detail-input:focus { border-color: var(--blue); }
+  .bex-detail-note {
+    width: 100%; background: white; border: 1.5px solid #E0E0E0; border-radius: 6px;
+    padding: 7px 10px; color: var(--text); font-size: 12px; resize: none; height: 52px; outline: none; font-family: inherit;
+  }
+  .bex-detail-note:focus { border-color: var(--blue); }
+
+  /* Right search panel */
+  .builder-right { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; position: sticky; top: 80px; }
+  .builder-right-header { padding: 14px; border-bottom: 1px solid #F0F0F0; }
+  .builder-search {
+    width: 100%; padding: 10px 12px 10px 34px; border: 1.5px solid #E0E0E0;
+    border-radius: 8px; font-size: 13px; outline: none; background: #FAFAFA;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237F8C8D' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 10px center;
+  }
+  .builder-search:focus { border-color: var(--blue); }
+  .muscle-filters-wrap { padding: 10px 14px; border-bottom: 1px solid #F0F0F0; display: flex; gap: 5px; flex-wrap: wrap; }
+  .mf-pill {
+    background: var(--gray); border: 1.5px solid #E8ECF0; border-radius: 20px;
+    padding: 3px 10px; font-size: 11px; cursor: pointer; color: var(--text-light); transition: .15s; font-weight: 600;
+  }
+  .mf-pill.active { background: var(--dark); border-color: var(--dark); color: white; }
+  .ex-results-list { max-height: 450px; overflow-y: auto; padding: 8px; }
+  .ex-result-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: .15s;
+    border: 1.5px solid transparent; margin-bottom: 3px;
+  }
+  .ex-result-row:hover { background: #EBF5FB; border-color: var(--blue); }
+  .ex-result-row.added { opacity: .45; pointer-events: none; }
+  .ex-result-name { font-size: 13px; font-weight: 600; color: var(--dark); }
+  .ex-result-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+  .add-ex-btn { color: var(--green); font-size: 20px; font-weight: 700; flex-shrink: 0; }
+  .added-ex-check { color: var(--text-light); font-size: 13px; flex-shrink: 0; }
+
+  /* ── ASIGNACIÓN SEMANAL ───────────────────────────────────── */
+  .week-planner { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 16px; }
+  .day-slot {
+    background: var(--gray); border-radius: 10px; padding: 12px 8px;
+    border: 2px solid transparent; transition: .2s; min-height: 120px;
+  }
+  .day-slot.has-table { background: #EBF5FB; border-color: var(--blue); }
+  .day-name { font-size: 12px; font-weight: 800; color: var(--dark); text-align: center; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .day-table-assigned { background: var(--dark); color: white; border-radius: 7px; padding: 6px 8px; font-size: 11px; font-weight: 600; text-align: center; margin-bottom: 6px; cursor: default; }
+  .day-table-assigned .remove-day { display: block; margin-top: 4px; color: rgba(255,255,255,.6); cursor: pointer; font-size: 11px; }
+  .day-table-assigned .remove-day:hover { color: white; }
+  .day-add-btn {
+    width: 100%; background: none; border: 1.5px dashed #BDC3C7; border-radius: 7px;
+    color: var(--text-light); font-size: 20px; cursor: pointer; padding: 8px 0;
+    transition: .15s;
+  }
+  .day-add-btn:hover { border-color: var(--blue); color: var(--blue); background: white; }
+
+  @media (max-width: 900px) {
+    .builder-layout { grid-template-columns: 1fr; }
+    .builder-right { position: static; }
+    .week-planner { grid-template-columns: repeat(4, 1fr); }
+  }
   @media (max-width: 768px) {
     .sidebar { transform: translateX(-240px); transition: transform 0.3s; }
     .sidebar.open { transform: translateX(0); }
     .main { margin-left: 0; }
     .form-row { grid-template-columns: 1fr; }
+    .week-planner { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -201,31 +334,16 @@
         <img src="https://www.google.com/favicon.ico" width="18" height="18"> Entrar con Google
       </button>
       <div style="text-align:center;color:#aaa;font-size:12px;margin-bottom:16px;">— o con email —</div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="login-email" placeholder="tu@email.com">
-      </div>
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" id="login-password" placeholder="••••••••">
-      </div>
-      <button class="btn btn-primary" id="btn-login" onclick="event.preventDefault();login();">Entrar</button>
+      <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="tu@email.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" placeholder="••••••••"></div>
+      <button class="btn btn-primary" onclick="login()">Entrar</button>
       <div class="auth-switch">¿No tienes cuenta? <a onclick="showRegister()">Regístrate</a></div>
     </div>
     <div id="register-form" class="hidden">
-      <div class="form-group">
-        <label>Nombre completo</label>
-        <input type="text" id="reg-name" placeholder="Tu nombre">
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="reg-email" placeholder="tu@email.com">
-      </div>
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
-      </div>
-      <button class="btn btn-primary" id="btn-register" onclick="event.preventDefault();register();">Crear cuenta</button>
+      <div class="form-group"><label>Nombre completo</label><input type="text" id="reg-name" placeholder="Tu nombre"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="tu@email.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="reg-password" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn btn-primary" onclick="register()">Crear cuenta</button>
       <div class="auth-switch">¿Ya tienes cuenta? <a onclick="showLogin()">Inicia sesión</a></div>
     </div>
   </div>
@@ -244,15 +362,12 @@
       <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
     </div>
   </aside>
-
   <main class="main">
     <div class="topbar">
       <h2 id="page-title">Dashboard</h2>
       <div id="topbar-actions"></div>
     </div>
-    <div class="content" id="main-content">
-      <div class="loading">Cargando...</div>
-    </div>
+    <div class="content" id="main-content"><div class="loading">Cargando...</div></div>
   </main>
 </div>
 
@@ -267,35 +382,24 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null;
-let currentProfile = null;
-let currentPage = null;
+let currentUser = null, currentProfile = null, currentPage = null;
 
 // ─── AUTH ────────────────────────────────────────────────────
 async function loginGoogle() {
-  const { error } = await db.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: 'https://strengthlab-hpml.vercel.app' }
-  });
+  const { error } = await db.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://strengthlab-hpml.vercel.app' } });
   if (error) showAuthError('Error con Google: ' + error.message);
 }
-
 async function login() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   if (!email || !password) return showAuthError('Rellena email y contraseña');
   const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error) {
-    showAuthError('Email o contraseña incorrectos. Prueba con: StrengthLab2026');
-  } else if (data?.user) {
-    // Ensure profile exists
+  if (error) { showAuthError('Email o contraseña incorrectos. Prueba con: StrengthLab2026'); }
+  else if (data?.user) {
     const { data: profile } = await db.from('profiles').select('*').eq('id', data.user.id).single();
-    if (!profile) {
-      await db.from('profiles').insert({ id: data.user.id, email: data.user.email, name: email.split('@')[0], role: 'client' });
-    }
+    if (!profile) await db.from('profiles').insert({ id: data.user.id, email: data.user.email, name: email.split('@')[0], role: 'client' });
   }
 }
-
 async function register() {
   const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
@@ -303,37 +407,21 @@ async function register() {
   if (!name || !email || !password) return showAuthError('Rellena todos los campos');
   if (password.length < 6) return showAuthError('La contraseña debe tener mínimo 6 caracteres');
   const { data, error } = await db.auth.signUp({ email, password, options: { data: { name } } });
-  if (error) {
-    showAuthError(error.message);
-  } else if (data?.user) {
-    // Create profile manually in case trigger fails
+  if (error) { showAuthError(error.message); }
+  else if (data?.user) {
     await db.from('profiles').upsert({ id: data.user.id, email, name, role: 'client' });
     showAuthError('✅ Cuenta creada. Iniciando sesión...', true);
     setTimeout(() => db.auth.signInWithPassword({ email, password }), 1000);
   }
 }
-
-async function logout() {
-  await db.auth.signOut();
-  location.reload();
-}
-
+async function logout() { await db.auth.signOut(); location.reload(); }
 function showAuthError(msg, isInfo = false) {
   const el = document.getElementById('auth-error');
-  el.textContent = msg;
-  el.style.background = isInfo ? '#D5F5E3' : '#FADBD8';
-  el.style.color = isInfo ? '#1E8449' : '#C0392B';
-  el.classList.remove('hidden');
+  el.textContent = msg; el.style.background = isInfo ? '#D5F5E3' : '#FADBD8';
+  el.style.color = isInfo ? '#1E8449' : '#C0392B'; el.classList.remove('hidden');
 }
-
-function showRegister() {
-  document.getElementById('login-form').classList.add('hidden');
-  document.getElementById('register-form').classList.remove('hidden');
-}
-function showLogin() {
-  document.getElementById('register-form').classList.add('hidden');
-  document.getElementById('login-form').classList.remove('hidden');
-}
+function showRegister() { document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); }
+function showLogin() { document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); }
 
 // ─── INIT ────────────────────────────────────────────────────
 db.auth.onAuthStateChange(async (event, session) => {
@@ -342,8 +430,8 @@ db.auth.onAuthStateChange(async (event, session) => {
     let { data: profile } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
     if (!profile) {
       await db.from('profiles').insert({ id: currentUser.id, email: currentUser.email, name: currentUser.email.split('@')[0], role: 'client' });
-      const { data: newProfile } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
-      profile = newProfile;
+      const { data: np } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+      profile = np;
     }
     currentProfile = profile;
     initApp();
@@ -359,97 +447,47 @@ function initApp() {
   document.getElementById('sidebar-role').textContent = currentProfile?.role === 'admin' ? '👑 Admin — Entrenador' : '🏋️ Cliente';
   document.getElementById('user-info').textContent = currentProfile?.name || currentProfile?.email;
   buildNav();
-  if (currentProfile?.role === 'admin') navigateTo('dashboard');
-  else navigateTo('my-tables');
+  navigateTo(currentProfile?.role === 'admin' ? 'dashboard' : 'my-tables');
 }
 
 function buildNav() {
   const nav = document.getElementById('sidebar-nav');
   const isAdmin = currentProfile?.role === 'admin';
   const items = isAdmin
-    ? [
-        { id: 'dashboard', icon: '📊', label: 'Dashboard' },
-        { id: 'tables', icon: '📋', label: 'Biblioteca Tablas' },
-        { id: 'create-table', icon: '➕', label: 'Crear Tabla' },
-        { id: 'clients', icon: '👥', label: 'Clientes' },
-        { id: 'assign', icon: '🔗', label: 'Asignar Tablas' },
-        { id: 'exercises', icon: '💪', label: 'Ejercicios' },
-      ]
-    : [
-        { id: 'my-tables', icon: '📋', label: 'Mi Entrenamiento' },
-        { id: 'progress', icon: '📈', label: 'Mi Progresión' },
-      ];
-
-  nav.innerHTML = items.map(item => `
-    <div class="nav-item" id="nav-${item.id}" onclick="navigateTo('${item.id}')">
-      <span class="nav-icon">${item.icon}</span>${item.label}
-    </div>`).join('');
+    ? [{ id: 'dashboard', icon: '📊', label: 'Dashboard' }, { id: 'tables', icon: '📋', label: 'Biblioteca Tablas' }, { id: 'create-table', icon: '➕', label: 'Crear Tabla' }, { id: 'clients', icon: '👥', label: 'Clientes' }, { id: 'assign', icon: '📅', label: 'Planificación semanal' }, { id: 'exercises', icon: '💪', label: 'Ejercicios' }]
+    : [{ id: 'my-tables', icon: '📋', label: 'Mi Entrenamiento' }, { id: 'progress', icon: '📈', label: 'Mi Progresión' }];
+  nav.innerHTML = items.map(i => `<div class="nav-item" id="nav-${i.id}" onclick="navigateTo('${i.id}')"><span class="nav-icon">${i.icon}</span>${i.label}</div>`).join('');
 }
 
 function navigateTo(page) {
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const navEl = document.getElementById(`nav-${page}`);
-  if (navEl) navEl.classList.add('active');
-
-  const titles = {
-    'dashboard': 'Dashboard',
-    'tables': 'Biblioteca de Tablas',
-    'create-table': 'Crear Nueva Tabla',
-    'clients': 'Clientes',
-    'assign': 'Asignar Tablas',
-    'exercises': 'Base de Datos de Ejercicios',
-    'my-tables': 'Mi Entrenamiento',
-    'progress': 'Mi Progresión',
-  };
+  document.getElementById(`nav-${page}`)?.classList.add('active');
+  const titles = { dashboard: 'Dashboard', tables: 'Biblioteca de Tablas', 'create-table': 'Crear Nueva Tabla', clients: 'Clientes', assign: 'Planificación semanal', exercises: 'Ejercicios', 'my-tables': 'Mi Entrenamiento', progress: 'Mi Progresión' };
   document.getElementById('page-title').textContent = titles[page] || page;
   document.getElementById('topbar-actions').innerHTML = '';
-
-  const content = document.getElementById('main-content');
-  content.innerHTML = '<div class="loading">Cargando...</div>';
-
-  const pages = {
-    'dashboard': renderDashboard,
-    'tables': renderTables,
-    'create-table': renderCreateTable,
-    'clients': renderClients,
-    'assign': renderAssign,
-    'exercises': renderExercises,
-    'my-tables': renderMyTables,
-    'progress': renderProgress,
-  };
-  if (pages[page]) pages[page]();
+  document.getElementById('main-content').innerHTML = '<div class="loading">Cargando...</div>';
+  ({ dashboard: renderDashboard, tables: renderTables, 'create-table': renderCreateTable, clients: renderClients, assign: renderAssign, exercises: renderExercises, 'my-tables': renderMyTables, progress: renderProgress })[page]?.();
 }
 
-// ─── DASHBOARD (ADMIN) ───────────────────────────────────────
+// ─── DASHBOARD ───────────────────────────────────────────────
 async function renderDashboard() {
-  const [{ count: clientCount }, { count: tableCount }, { count: exCount }] = await Promise.all([
+  const [{ count: c1 }, { count: c2 }, { count: c3 }] = await Promise.all([
     db.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client'),
     db.from('workout_tables').select('*', { count: 'exact', head: true }),
     db.from('exercises').select('*', { count: 'exact', head: true }),
   ]);
-
   document.getElementById('main-content').innerHTML = `
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#EBF5FB">👥</div>
-        <div class="stat-info"><h3>${clientCount || 0}</h3><p>Clientes</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#E8F8F5">📋</div>
-        <div class="stat-info"><h3>${tableCount || 0}</h3><p>Tablas creadas</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#FEF9E7">💪</div>
-        <div class="stat-info"><h3>${exCount || 0}</h3><p>Ejercicios</p></div>
-      </div>
+      <div class="stat-card"><div class="stat-icon" style="background:#EBF5FB">👥</div><div class="stat-info"><h3>${c1||0}</h3><p>Clientes</p></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#E8F8F5">📋</div><div class="stat-info"><h3>${c2||0}</h3><p>Tablas creadas</p></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#FEF9E7">💪</div><div class="stat-info"><h3>${c3||0}</h3><p>Ejercicios</p></div></div>
     </div>
-    <div class="admin-section">
-      <h3>⚡ Acciones rápidas</h3>
+    <div class="admin-section"><h3>⚡ Acciones rápidas</h3>
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
         <button class="btn-small btn-blue" onclick="navigateTo('create-table')">➕ Nueva tabla</button>
-        <button class="btn-small btn-success" onclick="navigateTo('assign')">🔗 Asignar tabla a cliente</button>
-        <button class="btn-small" style="background:var(--purple);color:white" onclick="navigateTo('exercises')">💪 Gestionar ejercicios</button>
+        <button class="btn-small btn-success" onclick="navigateTo('assign')">📅 Planificación semanal</button>
+        <button class="btn-small" style="background:var(--purple);color:white" onclick="navigateTo('exercises')">💪 Ejercicios</button>
       </div>
     </div>`;
 }
@@ -457,171 +495,146 @@ async function renderDashboard() {
 // ─── TABLES LIBRARY ──────────────────────────────────────────
 async function renderTables() {
   const { data: tables } = await db.from('workout_tables').select('*').order('created_at', { ascending: false });
-
   const objColors = { hipertrofia: 'badge-h', fuerza: 'badge-f', 'alto rendimiento': 'badge-ar', salud: 'badge-s' };
-
   document.getElementById('topbar-actions').innerHTML = `<button class="btn-small btn-blue" onclick="navigateTo('create-table')">➕ Nueva tabla</button>`;
-
   document.getElementById('main-content').innerHTML = tables?.length
     ? `<div class="tables-grid">${tables.map(t => `
         <div class="table-card" onclick="viewTable('${t.id}')">
-          <div class="table-card-header">
-            <span class="table-badge ${objColors[t.objective?.toLowerCase()] || 'badge-f'}">${t.objective || 'General'}</span>
-            <span style="font-size:11px;color:var(--text-light)">${t.code || ''}</span>
-          </div>
-          <h3>${t.name}</h3>
-          <p>${t.notes || 'Sin descripción'}</p>
-          <div class="table-card-footer">
-            <span class="chip">📊 ${t.level || 'Intermedio'}</span>
-            <span class="chip">🔄 ${t.frequency || '2x/semana'}</span>
-          </div>
+          <div class="table-card-header"><span class="table-badge ${objColors[t.objective?.toLowerCase()]||'badge-f'}">${t.objective||'General'}</span><span style="font-size:11px;color:var(--text-light)">${t.code||''}</span></div>
+          <h3>${t.name}</h3><p>${t.notes||'Sin descripción'}</p>
+          <div class="table-card-footer"><span class="chip">📊 ${t.level||'Intermedio'}</span><span class="chip">🔄 ${t.frequency||'2x/semana'}</span></div>
         </div>`).join('')}</div>`
-    : `<div class="empty"><p>No hay tablas aún.<br>Crea la primera desde "Crear Tabla".</p></div>`;
+    : `<div class="empty"><p>No hay tablas aún.</p></div>`;
 }
 
 // ─── VIEW TABLE ──────────────────────────────────────────────
 async function viewTable(tableId) {
   const { data: table } = await db.from('workout_tables').select('*').eq('id', tableId).single();
-  const { data: exs } = await db.from('table_exercises')
-    .select('*, exercise:exercises(*)')
-    .eq('table_id', tableId)
-    .order('order_index');
-
+  const { data: exs } = await db.from('table_exercises').select('*, exercise:exercises(*)').eq('table_id', tableId).order('order_index');
   const phases = { MOV: [], SNC: [], PPAL: [], COMP: [] };
-  exs?.forEach(e => { if (phases[e.phase]) phases[e.phase].push(e); else phases['COMP'].push(e); });
-
-  const phaseConfig = {
-    MOV: { label: '🟢 Movilidad y Calentamiento', cls: 'phase-mov' },
-    SNC: { label: '🟠 Activación SNC', cls: 'phase-snc' },
-    PPAL: { label: '🔵 Ejercicios Principales', cls: 'phase-ppal' },
-    COMP: { label: '🟣 Complementarios', cls: 'phase-comp' },
-  };
-
-  const getYouTubeId = url => {
-    const m = url?.match(/shorts\/([^?]+)|v=([^&]+)/);
-    return m ? (m[1] || m[2]) : null;
-  };
-
+  exs?.forEach(e => { (phases[e.phase] || phases['COMP']).push(e); });
+  const phaseConfig = { MOV: { label: '🟢 Movilidad y Calentamiento', cls: 'phase-mov' }, SNC: { label: '🟠 Activación SNC', cls: 'phase-snc' }, PPAL: { label: '🔵 Ejercicios Principales', cls: 'phase-ppal' }, COMP: { label: '🟣 Complementarios', cls: 'phase-comp' } };
+  const getYTId = url => { const m = url?.match(/shorts\/([^?]+)|v=([^&]+)/); return m ? (m[1]||m[2]) : null; };
   document.getElementById('main-content').innerHTML = `
     <button onclick="navigateTo('tables')" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:14px;margin-bottom:16px;">← Volver</button>
-    <div class="workout-header">
-      <h2>${table.name}</h2>
-      <p style="opacity:0.8;font-size:13px;margin-bottom:10px">${table.notes || ''}</p>
-      <div class="workout-meta">
-        <span>📊 ${table.level || 'Intermedio'}</span>
-        <span>🎯 ${table.objective || 'General'}</span>
-        <span>🔄 ${table.frequency || '2x/semana'}</span>
-      </div>
+    <div class="workout-header"><h2>${table.name}</h2><p style="opacity:0.8;font-size:13px;margin-bottom:10px">${table.notes||''}</p>
+      <div class="workout-meta"><span>📊 ${table.level||'Intermedio'}</span><span>🎯 ${table.objective||'General'}</span><span>🔄 ${table.frequency||'2x/semana'}</span></div>
     </div>
-    ${Object.entries(phases).filter(([,exs]) => exs.length > 0).map(([phase, exs]) => `
+    ${Object.entries(phases).filter(([,ex])=>ex.length>0).map(([ph,ex])=>`
       <div class="phase-section">
-        <div class="phase-header ${phaseConfig[phase].cls}">${phaseConfig[phase].label}</div>
-        ${exs.map(ex => {
-          const ytId = getYouTubeId(ex.exercise?.youtube_url);
-          const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
-          return `
+        <div class="phase-header ${phaseConfig[ph].cls}">${phaseConfig[ph].label}</div>
+        ${ex.map(e=>{const ytId=getYTId(e.exercise?.youtube_url);const th=ytId?`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`:'';return`
           <div class="exercise-card">
-            <div class="exercise-card-header" onclick="toggleExercise('ex-${ex.id}')">
-              <div class="exercise-thumb">
-                ${thumb ? `<img src="${thumb}" alt="${ex.exercise?.name}">` : ''}
-                <div class="play-btn">▶</div>
-              </div>
-              <div class="exercise-info">
-                <h4>${ex.exercise?.name || 'Ejercicio'}</h4>
-                <div class="ex-code">${ex.exercise?.code || ''}</div>
+            <div class="exercise-card-header" onclick="toggleExercise('ex-${e.id}')">
+              <div class="exercise-thumb">${th?`<img src="${th}" alt="">`:''}<div class="play-btn">▶</div></div>
+              <div class="exercise-info"><h4>${e.exercise?.name||'Ejercicio'}</h4><div class="ex-code">${e.exercise?.code||''}</div>
                 <div class="exercise-params">
-                  <span class="param-chip param-series">📊 ${ex.sets} series</span>
-                  <span class="param-chip param-reps">✅ ${ex.reps} reps</span>
-                  ${ex.rir ? `<span class="param-chip param-rir">⚡ ${ex.rir}</span>` : ''}
-                  ${ex.tempo ? `<span class="param-chip param-tempo">⏱ ${ex.tempo}</span>` : ''}
-                  ${ex.rest_between_sets ? `<span class="param-chip param-rest">💤 ${ex.rest_between_sets}</span>` : ''}
+                  <span class="param-chip param-series">📊 ${e.sets} series</span>
+                  <span class="param-chip param-reps">✅ ${e.reps} reps</span>
+                  ${e.rir?`<span class="param-chip param-rir">⚡ ${e.rir}</span>`:''}
+                  ${e.tempo?`<span class="param-chip param-tempo">⏱ ${e.tempo}</span>`:''}
+                  ${e.rest_between_sets?`<span class="param-chip param-rest">💤 ${e.rest_between_sets}</span>`:''}
                 </div>
-              </div>
-              <span class="expand-btn">▾</span>
+              </div><span class="expand-btn">▾</span>
             </div>
-            <div class="exercise-details hidden" id="ex-${ex.id}">
-              ${ytId ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe></div>` : ''}
-              ${ex.notes ? `<p>${ex.notes}</p>` : ''}
-              ${ex.exercise?.description ? `<p>${ex.exercise.description}</p>` : ''}
-              <div class="log-section" id="log-${ex.id}"></div>
+            <div class="exercise-details hidden" id="ex-${e.id}">
+              ${ytId?`<div class="video-container"><iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe></div>`:''}
+              ${e.notes?`<p>${e.notes}</p>`:''}${e.exercise?.description?`<p>${e.exercise.description}</p>`:''}
+              <div id="log-${e.id}"></div>
             </div>
-          </div>`;
-        }).join('')}
+          </div>`;}).join('')}
       </div>`).join('')}
-    ${currentProfile?.role === 'admin' ? `<div style="margin-top:20px;display:flex;gap:10px;">
-      <button class="btn-small btn-danger" onclick="deleteTable('${tableId}')">🗑 Eliminar tabla</button>
-    </div>` : ''}`;
-
-  // Load logs for each exercise
+    ${currentProfile?.role==='admin'?`<div style="margin-top:20px"><button class="btn-small btn-danger" onclick="deleteTable('${tableId}')">🗑 Eliminar tabla</button></div>`:''}`;
   if (currentProfile?.role === 'client') {
-    for (const phase of Object.values(phases)) {
-      for (const ex of phase) {
-        await loadExerciseLogs(ex.id, ex.sets);
-      }
-    }
+    for (const ph of Object.values(phases)) for (const ex of ph) await loadExerciseLogs(ex.id, ex.sets);
   }
 }
-
-function toggleExercise(id) {
-  const el = document.getElementById(id);
-  el.classList.toggle('hidden');
-}
+function toggleExercise(id) { document.getElementById(id).classList.toggle('hidden'); }
 
 async function loadExerciseLogs(tableExId, sets) {
-  const { data: logs } = await db.from('workout_logs')
-    .select('*')
-    .eq('client_id', currentUser.id)
-    .eq('table_exercise_id', tableExId)
-    .order('logged_at', { ascending: false })
-    .limit(3);
-
-  const container = document.getElementById(`log-${tableExId}`);
-  if (!container) return;
-
-  const prevLog = logs?.[0];
-  const prevHtml = prevLog ? `
-    <div class="prev-log">
-      <div class="prev-log-title">📈 Última sesión — ${new Date(prevLog.logged_at).toLocaleDateString('es-ES')}</div>
-      <div class="prev-log-data">${prevLog.sets_data?.map((s, i) => `Serie ${i+1}: ${s.weight}kg × ${s.reps} reps`).join(' · ')}</div>
-    </div>` : '';
-
-  const setsInputs = Array.from({length: sets || 3}, (_, i) => `
-    <div class="set-row">
-      <span class="set-label">Serie ${i+1}</span>
-      <input class="set-input" id="w-${tableExId}-${i}" type="number" placeholder="kg" step="0.5">
-      <input class="set-input" id="r-${tableExId}-${i}" type="number" placeholder="reps">
-    </div>`).join('');
-
+  const { data: logs } = await db.from('workout_logs').select('*').eq('client_id', currentUser.id).eq('table_exercise_id', tableExId).order('logged_at', { ascending: false }).limit(3);
+  const container = document.getElementById(`log-${tableExId}`); if (!container) return;
+  const prev = logs?.[0];
   container.innerHTML = `
-    ${prevHtml}
-    <div class="log-section">
-      <div class="log-title">📝 Registrar sesión de hoy</div>
-      <div class="sets-log">${setsInputs}</div>
-      <button class="btn-save-log" onclick="saveLog('${tableExId}', ${sets || 3})">💾 Guardar</button>
+    ${prev?`<div class="prev-log"><div class="prev-log-title">📈 Última sesión — ${new Date(prev.logged_at).toLocaleDateString('es-ES')}</div><div class="prev-log-data">${prev.sets_data?.map((s,i)=>`Serie ${i+1}: ${s.weight}kg × ${s.reps} reps`).join(' · ')}</div></div>`:''}
+    <div class="log-section"><div class="log-title">📝 Registrar hoy</div><div class="sets-log">
+      ${Array.from({length:sets||3},(_,i)=>`<div class="set-row"><span class="set-label">Serie ${i+1}</span><input class="set-input" id="w-${tableExId}-${i}" type="number" placeholder="kg" step="0.5"><input class="set-input" id="r-${tableExId}-${i}" type="number" placeholder="reps"></div>`).join('')}
+    </div><button class="btn-save-log" onclick="saveLog('${tableExId}',${sets||3})">💾 Guardar</button></div>`;
+}
+async function saveLog(tableExId, sets) {
+  const setsData = Array.from({length:sets},(_,i)=>({ set:i+1, weight:parseFloat(document.getElementById(`w-${tableExId}-${i}`)?.value)||0, reps:parseInt(document.getElementById(`r-${tableExId}-${i}`)?.value)||0 }));
+  await db.from('workout_logs').insert({ client_id: currentUser.id, table_exercise_id: tableExId, sets_data: setsData });
+  showToast('✅ Sesión guardada'); await loadExerciseLogs(tableExId, sets);
+}
+async function deleteTable(id) {
+  if (!confirm('¿Eliminar esta tabla?')) return;
+  await db.from('workout_tables').delete().eq('id', id);
+  showToast('🗑 Tabla eliminada'); navigateTo('tables');
+}
+
+// ─── CREATE TABLE (NUEVO BUILDER CON FASES) ──────────────────
+const GOALS_CONFIG = [
+  { id:'fuerza', icon:'🏋️', name:'Fuerza', desc:'Alta carga, pocas reps', phase:'PPAL' },
+  { id:'hipertrofia', icon:'💪', name:'Hipertrofia', desc:'Volumen muscular', phase:'PPAL' },
+  { id:'fuerza_hiper', icon:'⚡', name:'Fuerza + Hipertrofia', desc:'Híbrido de ambos', phase:'PPAL' },
+  { id:'potencia', icon:'🚀', name:'Potencia', desc:'Explosividad y velocidad', phase:'SNC' },
+  { id:'resistencia', icon:'🏃', name:'Resistencia muscular', desc:'Muchas reps, carga baja', phase:'COMP' },
+  { id:'funcional', icon:'🤸', name:'Funcional', desc:'Movimientos globales', phase:'PPAL' },
+  { id:'rendimiento', icon:'🥇', name:'Rendimiento deportivo', desc:'Específico del deporte', phase:'PPAL' },
+  { id:'perdida', icon:'🔥', name:'Pérdida de grasa', desc:'Circuitos metabólicos', phase:'COMP' },
+];
+
+async function renderCreateTable() {
+  window._builderExercises = []; // {id, exercise_id, name, muscle, phase, sets, reps, rir, tempo, rest_between_sets, rest_after, notes, order_index}
+  window._builderGoal = null;
+  window._builderPhase = 1;
+  window._builderOpenDetail = null;
+  window._builderDragSrc = null;
+  window._allExForBuilder = [];
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="builder-phase-bar" id="bph-bar">
+      <div class="bph-step"><div class="bph-dot active" id="bph-dot-1">1</div><span class="bph-label active" id="bph-lbl-1">Objetivo</span></div>
+      <div class="bph-sep"></div>
+      <div class="bph-step"><div class="bph-dot" id="bph-dot-2">2</div><span class="bph-label" id="bph-lbl-2">Info de la tabla</span></div>
+      <div class="bph-sep"></div>
+      <div class="bph-step"><div class="bph-dot" id="bph-dot-3">3</div><span class="bph-label" id="bph-lbl-3">Ejercicios</span></div>
+    </div>
+    <div id="builder-phase1">${renderBuilderPhase1()}</div>
+    <div id="builder-phase2" class="hidden">${renderBuilderPhase2()}</div>
+    <div id="builder-phase3" class="hidden"></div>
+  `;
+}
+
+function renderBuilderPhase1() {
+  return `
+    <div class="admin-section">
+      <h3>🎯 ¿Cuál es el objetivo de la tabla?</h3>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:16px">Elige el tipo de entrenamiento para filtrar los ejercicios más adecuados</p>
+      <div class="goal-grid">
+        ${GOALS_CONFIG.map(g=>`
+          <div class="goal-card" id="goal-${g.id}" onclick="selectGoal('${g.id}')">
+            <div class="gc-icon">${g.icon}</div>
+            <div class="gc-name">${g.name}</div>
+            <div class="gc-desc">${g.desc}</div>
+          </div>`).join('')}
+      </div>
+      <button id="btn-next-p1" onclick="goBuilderPhase2()" style="opacity:.4;background:var(--dark);color:white;border:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;cursor:not-allowed;transition:.2s">
+        Siguiente →
+      </button>
     </div>`;
 }
 
-async function saveLog(tableExId, sets) {
-  const setsData = Array.from({length: sets}, (_, i) => ({
-    set: i + 1,
-    weight: parseFloat(document.getElementById(`w-${tableExId}-${i}`)?.value) || 0,
-    reps: parseInt(document.getElementById(`r-${tableExId}-${i}`)?.value) || 0,
-  }));
-
-  await db.from('workout_logs').insert({
-    client_id: currentUser.id,
-    table_exercise_id: tableExId,
-    sets_data: setsData,
-  });
-  showToast('✅ Sesión guardada');
-  await loadExerciseLogs(tableExId, sets);
+function selectGoal(id) {
+  document.querySelectorAll('.goal-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById(`goal-${id}`)?.classList.add('selected');
+  window._builderGoal = GOALS_CONFIG.find(g=>g.id===id);
+  const btn = document.getElementById('btn-next-p1');
+  btn.style.opacity='1'; btn.style.cursor='pointer';
 }
 
-// ─── CREATE TABLE ────────────────────────────────────────────
-async function renderCreateTable() {
-  const { data: exercises } = await db.from('exercises').select('*').order('name');
-
-  document.getElementById('main-content').innerHTML = `
+function renderBuilderPhase2() {
+  return `
     <div class="admin-section">
       <h3>📋 Información de la tabla</h3>
       <div class="form-row">
@@ -629,260 +642,371 @@ async function renderCreateTable() {
         <div class="form-group-inline"><label>Código</label><input id="t-code" placeholder="Ej: H-GI-01"></div>
       </div>
       <div class="form-row">
-        <div class="form-group-inline"><label>Objetivo</label>
-          <select id="t-objective">
-            <option>Hipertrofia</option><option>Fuerza</option><option>Alto Rendimiento</option>
-            <option>Salud</option><option>Funcional</option><option>Rehab</option>
-          </select>
-        </div>
         <div class="form-group-inline"><label>Nivel</label>
-          <select id="t-level"><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select>
+          <select id="t-level"><option>Principiante</option><option selected>Intermedio</option><option>Avanzado</option></select>
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group-inline"><label>Frecuencia</label><input id="t-freq" placeholder="Ej: 2x/semana"></div>
-        <div class="form-group-inline"><label>Notas generales</label><input id="t-notes" placeholder="Descripción breve..."></div>
       </div>
-    </div>
+      <div class="form-group-inline" style="margin-bottom:16px"><label>Notas generales</label>
+        <textarea id="t-notes" rows="2" placeholder="Descripción breve del bloque de entrenamiento..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="goBuilderPhase1()" style="background:var(--gray);border:none;padding:11px 22px;border-radius:8px;font-weight:600;cursor:pointer">← Atrás</button>
+        <button onclick="goBuilderPhase3()" style="background:var(--dark);color:white;border:none;padding:11px 28px;border-radius:8px;font-weight:700;cursor:pointer">Siguiente → Añadir ejercicios</button>
+      </div>
+    </div>`;
+}
 
-    <div class="admin-section">
-      <h3>💪 Añadir ejercicios</h3>
-      <div class="form-row">
-        <div class="form-group-inline">
-          <label>Ejercicio</label>
-          <select id="ex-select">
-            <option value="">— Selecciona un ejercicio —</option>
-            ${exercises?.map(e => `<option value="${e.id}">${e.name} (${e.code || 'sin código'})</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group-inline"><label>Fase</label>
-          <select id="ex-phase"><option value="MOV">🟢 Movilidad</option><option value="SNC">🟠 SNC</option><option value="PPAL">🔵 Principal</option><option value="COMP">🟣 Complementario</option></select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group-inline"><label>Series</label><input type="number" id="ex-sets" value="3" min="1"></div>
-        <div class="form-group-inline"><label>Reps</label><input id="ex-reps" placeholder="Ej: 8-10 o 30s"></div>
-        <div class="form-group-inline"><label>RIR</label><input id="ex-rir" placeholder="Ej: RIR 1-2"></div>
-        <div class="form-group-inline"><label>Tempo</label><input id="ex-tempo" placeholder="Ej: 3-1-2"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group-inline"><label>Descanso entre series</label><input id="ex-rest-sets" placeholder="Ej: 90s"></div>
-        <div class="form-group-inline"><label>Descanso antes del siguiente</label><input id="ex-rest-after" placeholder="Ej: 2 min"></div>
-      </div>
-      <div class="form-group-inline" style="margin-bottom:12px"><label>Notas del ejercicio</label><textarea id="ex-notes" rows="2" placeholder="Indicaciones de ejecución..."></textarea></div>
-      <button class="btn-small btn-blue" onclick="addExerciseToList()">➕ Añadir ejercicio</button>
-    </div>
+async function goBuilderPhase1() {
+  document.getElementById('builder-phase2').classList.add('hidden');
+  document.getElementById('builder-phase1').classList.remove('hidden');
+  document.getElementById('bph-dot-1').className='bph-dot active'; document.getElementById('bph-lbl-1').className='bph-label active';
+  document.getElementById('bph-dot-2').className='bph-dot'; document.getElementById('bph-lbl-2').className='bph-label';
+}
 
-    <div class="admin-section">
-      <h3>📝 Ejercicios añadidos</h3>
-      <div id="ex-list"><div class="empty"><p>Aún no has añadido ejercicios.</p></div></div>
-      <button class="btn-small btn-success" onclick="saveTable()" style="margin-top:16px">💾 Guardar tabla completa</button>
+function goBuilderPhase2() {
+  if (!window._builderGoal) return;
+  document.getElementById('builder-phase1').classList.add('hidden');
+  document.getElementById('builder-phase2').classList.remove('hidden');
+  document.getElementById('bph-dot-1').className='bph-dot done'; document.getElementById('bph-dot-1').textContent='✓';
+  document.getElementById('bph-dot-2').className='bph-dot active'; document.getElementById('bph-lbl-2').className='bph-label active';
+}
+
+async function goBuilderPhase3() {
+  const name = document.getElementById('t-name').value.trim();
+  if (!name) { alert('El nombre de la tabla es obligatorio'); return; }
+  document.getElementById('builder-phase2').classList.add('hidden');
+  document.getElementById('builder-phase3').classList.remove('hidden');
+  document.getElementById('bph-dot-2').className='bph-dot done'; document.getElementById('bph-dot-2').textContent='✓';
+  document.getElementById('bph-dot-3').className='bph-dot active'; document.getElementById('bph-lbl-3').className='bph-label active';
+
+  // Load exercises from Supabase
+  const { data: exs } = await db.from('exercises').select('*').order('name');
+  window._allExForBuilder = exs || [];
+
+  renderBuilderPhase3();
+}
+
+function renderBuilderPhase3() {
+  const g = window._builderGoal;
+  document.getElementById('builder-phase3').innerHTML = `
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="background:var(--dark);color:white;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700">${g.icon} ${g.name}</span>
+      <span style="font-size:13px;color:var(--text-light)">Arrastra para reordenar · ⋯ para configurar cada ejercicio</span>
+    </div>
+    <div class="builder-layout">
+      <div class="builder-left">
+        <div class="builder-left-header">
+          <h3>Tabla de entrenamiento</h3>
+          <div style="display:flex;gap:8px">
+            <button onclick="goBuilderPhase2Back()" style="background:var(--gray);border:none;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">← Atrás</button>
+            <button onclick="saveBuilderTable()" style="background:var(--green);color:white;border:none;padding:8px 18px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">💾 Guardar tabla</button>
+          </div>
+        </div>
+        <div class="builder-ex-list" id="builder-ex-list">
+          <div class="builder-empty">🏋️<br>Busca ejercicios a la derecha<br>y haz clic en + para añadirlos</div>
+        </div>
+      </div>
+      <div class="builder-right">
+        <div class="builder-right-header">
+          <input class="builder-search" id="builder-search" type="text" placeholder="Buscar ejercicio..." oninput="renderBuilderResults()">
+        </div>
+        <div class="muscle-filters-wrap" id="builder-muscle-filters"></div>
+        <div class="ex-results-list" id="builder-results"></div>
+      </div>
     </div>`;
 
-  window._tableExercises = [];
+  window._builderMuscleFilter = 'todos';
+  renderBuilderMuscleFilters();
+  renderBuilderResults();
+  renderBuilderList();
 }
 
-function addExerciseToList() {
-  const exId = document.getElementById('ex-select').value;
-  const exName = document.getElementById('ex-select').selectedOptions[0]?.text;
-  if (!exId) return alert('Selecciona un ejercicio');
-
-  window._tableExercises.push({
-    exercise_id: exId,
-    exercise_name: exName,
-    phase: document.getElementById('ex-phase').value,
-    sets: parseInt(document.getElementById('ex-sets').value),
-    reps: document.getElementById('ex-reps').value,
-    rir: document.getElementById('ex-rir').value,
-    tempo: document.getElementById('ex-tempo').value,
-    rest_between_sets: document.getElementById('ex-rest-sets').value,
-    rest_after: document.getElementById('ex-rest-after').value,
-    notes: document.getElementById('ex-notes').value,
-    order_index: window._tableExercises.length,
-  });
-
-  const phaseLabels = { MOV: '🟢', SNC: '🟠', PPAL: '🔵', COMP: '🟣' };
-  document.getElementById('ex-list').innerHTML = `
-    <table class="data-table">
-      <thead><tr><th>Fase</th><th>Ejercicio</th><th>Series</th><th>Reps</th><th>RIR</th><th>Tempo</th><th>Descanso</th><th></th></tr></thead>
-      <tbody>${window._tableExercises.map((e, i) => `
-        <tr>
-          <td>${phaseLabels[e.phase]} ${e.phase}</td>
-          <td><strong>${e.exercise_name}</strong></td>
-          <td>${e.sets}</td><td>${e.reps}</td><td>${e.rir}</td><td>${e.tempo}</td><td>${e.rest_between_sets}</td>
-          <td><button class="btn-small btn-danger" onclick="removeExercise(${i})">✕</button></td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
+function goBuilderPhase2Back() {
+  document.getElementById('builder-phase3').classList.add('hidden');
+  document.getElementById('builder-phase2').classList.remove('hidden');
+  document.getElementById('bph-dot-2').className='bph-dot active'; document.getElementById('bph-dot-2').textContent='2';
+  document.getElementById('bph-lbl-2').className='bph-label active';
+  document.getElementById('bph-dot-3').className='bph-dot'; document.getElementById('bph-dot-3').textContent='3';
+  document.getElementById('bph-lbl-3').className='bph-label';
 }
 
-function removeExercise(i) {
-  window._tableExercises.splice(i, 1);
-  addExerciseToList();
-  window._tableExercises.pop();
+function renderBuilderMuscleFilters() {
+  const muscles = ['todos', ...new Set(window._allExForBuilder.map(e=>e.body_part||e.category||'').filter(Boolean))];
+  const wrap = document.getElementById('builder-muscle-filters'); if (!wrap) return;
+  wrap.innerHTML = muscles.map(m=>`<div class="mf-pill${m===window._builderMuscleFilter?' active':''}" onclick="setBuilderMuscle('${m}')">${m==='todos'?'Todos':m}</div>`).join('');
 }
 
-async function saveTable() {
-  const name = document.getElementById('t-name').value;
-  if (!name) return alert('El nombre de la tabla es obligatorio');
+function setBuilderMuscle(m) { window._builderMuscleFilter=m; renderBuilderMuscleFilters(); renderBuilderResults(); }
 
+function renderBuilderResults() {
+  const q = (document.getElementById('builder-search')?.value||'').toLowerCase();
+  const addedIds = new Set(window._builderExercises.map(e=>e.exercise_id));
+  let list = window._allExForBuilder;
+  if (window._builderMuscleFilter!=='todos') list=list.filter(e=>(e.body_part||e.category||'')===window._builderMuscleFilter);
+  if (q) list=list.filter(e=>e.name.toLowerCase().includes(q)||(e.code||'').toLowerCase().includes(q)||(e.category||'').toLowerCase().includes(q));
+  const cont = document.getElementById('builder-results'); if (!cont) return;
+  cont.innerHTML = list.length
+    ? list.map(e=>{ const added=addedIds.has(e.id); return `
+        <div class="ex-result-row${added?' added':''}" onclick="${added?'':'builderAddExercise(\''+e.id+'\')'}">
+          <div><div class="ex-result-name">${e.name}</div><div class="ex-result-meta">${e.code?e.code+' · ':''}${e.body_part||e.category||''}${e.laterality?' · '+e.laterality:''}</div></div>
+          <span class="${added?'added-ex-check':'add-ex-btn'}">${added?'✓':'+'}</span>
+        </div>`; }).join('')
+    : '<div style="text-align:center;color:var(--text-light);padding:24px;font-size:13px">Sin resultados</div>';
+}
+
+function builderAddExercise(exId) {
+  const ex = window._allExForBuilder.find(e=>e.id===exId); if (!ex) return;
+  window._builderExercises.push({ exercise_id:ex.id, name:ex.name, muscle:ex.body_part||ex.category||'', phase:'PPAL', sets:'', reps:'', rir:'', tempo:'', rest_between_sets:'', rest_after:'', notes:'', order_index:window._builderExercises.length });
+  renderBuilderList(); renderBuilderResults();
+}
+
+function builderRemoveExercise(idx) {
+  window._builderExercises.splice(idx,1);
+  window._builderExercises.forEach((e,i)=>e.order_index=i);
+  if (window._builderOpenDetail===idx) window._builderOpenDetail=null;
+  renderBuilderList(); renderBuilderResults();
+}
+
+function builderToggleDetail(idx) {
+  window._builderOpenDetail = window._builderOpenDetail===idx ? null : idx;
+  renderBuilderList();
+}
+
+function builderUpdateField(idx, field, val) {
+  if (window._builderExercises[idx]) window._builderExercises[idx][field]=val;
+}
+
+function renderBuilderList() {
+  const cont = document.getElementById('builder-ex-list'); if (!cont) return;
+  if (!window._builderExercises.length) {
+    cont.innerHTML='<div class="builder-empty">🏋️<br>Busca ejercicios a la derecha<br>y haz clic en + para añadirlos</div>'; return;
+  }
+  cont.innerHTML = window._builderExercises.map((ex,i)=>{
+    const params=[]; if(ex.sets) params.push(ex.sets+' series'); if(ex.reps) params.push(ex.reps+' reps'); if(ex.rest_between_sets) params.push(ex.rest_between_sets+' desc.');
+    return `
+      <div class="bex-item${window._builderOpenDetail===i?' bex-item-open':''}" draggable="true"
+        ondragstart="window._builderDragSrc=${i}"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="this.classList.remove('drag-over');builderDrop(${i})">
+        <span class="bex-drag">⠿</span>
+        <div class="bex-num">${i+1}</div>
+        <div class="bex-info">
+          <div class="bex-name">${ex.name}</div>
+          <div class="bex-sub">${ex.muscle}</div>
+          ${params.length?`<div class="bex-params">${params.join(' · ')}</div>`:''}
+        </div>
+        <select onchange="builderUpdateField(${i},'phase',this.value)" style="font-size:11px;border:1px solid #E0E0E0;border-radius:6px;padding:3px 6px;color:var(--text-light);cursor:pointer;background:white">
+          <option value="MOV" ${ex.phase==='MOV'?'selected':''}>🟢 Mov</option>
+          <option value="SNC" ${ex.phase==='SNC'?'selected':''}>🟠 SNC</option>
+          <option value="PPAL" ${ex.phase==='PPAL'?'selected':''}>🔵 Ppal</option>
+          <option value="COMP" ${ex.phase==='COMP'?'selected':''}>🟣 Comp</option>
+        </select>
+        <button class="bex-btn" onclick="builderToggleDetail(${i})" title="Configurar">⋯</button>
+        <button class="bex-btn del" onclick="builderRemoveExercise(${i})" title="Eliminar">✕</button>
+      </div>
+      ${window._builderOpenDetail===i ? `
+        <div class="bex-detail">
+          <div class="bex-detail-title">⚙️ Configurar · ${ex.name}</div>
+          <div class="bex-detail-grid">
+            <div class="bex-detail-field"><label class="bex-detail-label">Series</label><input class="bex-detail-input" type="number" min="1" placeholder="ej. 4" value="${ex.sets}" oninput="builderUpdateField(${i},'sets',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">Reps / Tiempo</label><input class="bex-detail-input" type="text" placeholder="ej. 8-10" value="${ex.reps}" oninput="builderUpdateField(${i},'reps',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">RIR</label><input class="bex-detail-input" type="text" placeholder="ej. RIR 1-2" value="${ex.rir}" oninput="builderUpdateField(${i},'rir',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">Tempo</label><input class="bex-detail-input" type="text" placeholder="ej. 3-1-2" value="${ex.tempo}" oninput="builderUpdateField(${i},'tempo',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">Descanso entre series</label><input class="bex-detail-input" type="text" placeholder="ej. 90s" value="${ex.rest_between_sets}" oninput="builderUpdateField(${i},'rest_between_sets',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">Descanso tras ejercicio</label><input class="bex-detail-input" type="text" placeholder="ej. 2 min" value="${ex.rest_after}" oninput="builderUpdateField(${i},'rest_after',this.value)"></div>
+          </div>
+          <div class="bex-detail-field" style="margin-bottom:10px"><label class="bex-detail-label">Nota</label><textarea class="bex-detail-note" placeholder="Indicaciones técnicas, variantes..." oninput="builderUpdateField(${i},'notes',this.value)">${ex.notes}</textarea></div>
+          <button onclick="builderToggleDetail(${i})" style="background:var(--dark);color:white;border:none;padding:7px 16px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer">Listo ✓</button>
+        </div>` : ''}`;
+  }).join('');
+}
+
+function builderDrop(toIdx) {
+  const from = window._builderDragSrc;
+  if (from===null||from===toIdx) return;
+  const arr=window._builderExercises; const [moved]=arr.splice(from,1); arr.splice(toIdx,0,moved);
+  arr.forEach((e,i)=>e.order_index=i); window._builderDragSrc=null;
+  if (window._builderOpenDetail===from) window._builderOpenDetail=toIdx;
+  renderBuilderList();
+}
+
+async function saveBuilderTable() {
+  const name = document.getElementById('t-name')?.value?.trim();
+  if (!name) { alert('El nombre de la tabla es obligatorio'); return; }
   const { data: table, error } = await db.from('workout_tables').insert({
-    name, code: document.getElementById('t-code').value,
-    objective: document.getElementById('t-objective').value,
-    level: document.getElementById('t-level').value,
-    frequency: document.getElementById('t-freq').value,
-    notes: document.getElementById('t-notes').value,
+    name, code: document.getElementById('t-code')?.value,
+    objective: window._builderGoal?.name,
+    level: document.getElementById('t-level')?.value,
+    frequency: document.getElementById('t-freq')?.value,
+    notes: document.getElementById('t-notes')?.value,
     created_by: currentUser.id,
   }).select().single();
-
-  if (error) return alert('Error: ' + error.message);
-
-  if (window._tableExercises.length > 0) {
-    await db.from('table_exercises').insert(
-      window._tableExercises.map(e => ({ ...e, table_id: table.id, exercise_name: undefined }))
-    );
+  if (error) { alert('Error al guardar: '+error.message); return; }
+  if (window._builderExercises.length>0) {
+    await db.from('table_exercises').insert(window._builderExercises.map((e,i)=>({
+      table_id: table.id, exercise_id: e.exercise_id, phase: e.phase,
+      sets: parseInt(e.sets)||3, reps: e.reps, rir: e.rir, tempo: e.tempo,
+      rest_between_sets: e.rest_between_sets, rest_after: e.rest_after,
+      notes: e.notes, order_index: i,
+    })));
   }
-
-  showToast('✅ Tabla guardada correctamente');
-  navigateTo('tables');
-}
-
-async function deleteTable(id) {
-  if (!confirm('¿Eliminar esta tabla? Esta acción no se puede deshacer.')) return;
-  await db.from('workout_tables').delete().eq('id', id);
-  showToast('🗑 Tabla eliminada');
-  navigateTo('tables');
+  showToast('✅ Tabla guardada correctamente'); navigateTo('tables');
 }
 
 // ─── CLIENTS ─────────────────────────────────────────────────
 async function renderClients() {
   const { data: clients } = await db.from('profiles').select('*').eq('role', 'client');
-
   document.getElementById('main-content').innerHTML = `
-    <div class="admin-section">
-      <h3>👥 Clientes registrados</h3>
-      ${clients?.length ? `
-        <table class="data-table">
-          <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Registro</th><th>Acciones</th></tr></thead>
-          <tbody>${clients.map(c => `
-            <tr>
-              <td><strong>${c.name || '—'}</strong></td>
-              <td>${c.email}</td>
-              <td><span class="badge-role badge-client">Cliente</span></td>
-              <td>${new Date(c.created_at).toLocaleDateString('es-ES')}</td>
-              <td><button class="btn-small btn-blue" onclick="navigateTo('assign')">🔗 Asignar tabla</button></td>
-            </tr>`).join('')}
-          </tbody>
-        </table>` : '<div class="empty"><p>No hay clientes registrados aún.</p></div>'}
+    <div class="admin-section"><h3>👥 Clientes registrados</h3>
+      ${clients?.length?`<table class="data-table">
+        <thead><tr><th>Nombre</th><th>Email</th><th>Registro</th><th>Acciones</th></tr></thead>
+        <tbody>${clients.map(c=>`<tr>
+          <td><strong>${c.name||'—'}</strong></td><td>${c.email}</td>
+          <td>${new Date(c.created_at).toLocaleDateString('es-ES')}</td>
+          <td><button class="btn-small btn-blue" onclick="navigateTo('assign')">📅 Ver planificación</button></td>
+        </tr>`).join('')}</tbody></table>`:'<div class="empty"><p>No hay clientes registrados aún.</p></div>'}
     </div>`;
 }
 
-// ─── ASSIGN ──────────────────────────────────────────────────
+// ─── ASSIGN — PLANIFICACIÓN SEMANAL ──────────────────────────
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
 async function renderAssign() {
   const [{ data: clients }, { data: tables }] = await Promise.all([
     db.from('profiles').select('*').eq('role', 'client'),
     db.from('workout_tables').select('*').order('name'),
   ]);
+  window._assignClients = clients||[];
+  window._assignTables = tables||[];
+  window._assignClientId = null;
+  window._assignWeekPlan = {}; // { 0:tableId, 1:tableId, ... } key=day index
 
   document.getElementById('main-content').innerHTML = `
     <div class="admin-section">
-      <h3>🔗 Asignar tabla a cliente</h3>
-      <div class="form-row">
-        <div class="form-group-inline"><label>Cliente</label>
-          <select id="assign-client">
-            <option value="">— Selecciona cliente —</option>
-            ${clients?.map(c => `<option value="${c.id}">${c.name || c.email}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group-inline"><label>Tabla</label>
-          <select id="assign-table">
-            <option value="">— Selecciona tabla —</option>
-            ${tables?.map(t => `<option value="${t.id}">${t.name} (${t.code || ''})</option>`).join('')}
-          </select>
+      <h3>👤 Selecciona el cliente</h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap" id="client-selector">
+        ${clients?.map(c=>`
+          <div onclick="selectAssignClient('${c.id}')" id="assign-client-${c.id}"
+            style="padding:10px 18px;border:2px solid #E8ECF0;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s;background:white">
+            👤 ${c.name||c.email}
+          </div>`).join('')||'<div class="empty"><p>No hay clientes.</p></div>'}
+      </div>
+    </div>
+    <div id="week-planner-section" class="hidden">
+      <div class="admin-section">
+        <h3>📅 Planificación semanal — <span id="assign-client-name"></span></h3>
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:16px">Haz clic en el + de cada día para asignar una tabla</p>
+        <div class="week-planner" id="week-planner"></div>
+        <div style="margin-top:20px;display:flex;gap:10px">
+          <button onclick="saveWeekPlan()" style="background:var(--green);color:white;border:none;padding:11px 28px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer">💾 Guardar planificación</button>
+          <button onclick="clearWeekPlan()" style="background:var(--gray);border:none;padding:11px 20px;border-radius:8px;font-weight:600;cursor:pointer">🗑 Limpiar semana</button>
         </div>
       </div>
-      <button class="btn-small btn-success" onclick="assignTable()">✅ Asignar</button>
-    </div>
-
-    <div class="admin-section">
-      <h3>📋 Asignaciones activas</h3>
-      <div id="assignments-list"><div class="loading">Cargando...</div></div>
     </div>`;
-
-  const { data: assignments } = await db.from('client_tables')
-    .select('*, client:profiles(name,email), table:workout_tables(name,code)')
-    .eq('active', true);
-
-  document.getElementById('assignments-list').innerHTML = assignments?.length
-    ? `<table class="data-table">
-        <thead><tr><th>Cliente</th><th>Tabla</th><th>Asignada</th><th>Acciones</th></tr></thead>
-        <tbody>${assignments.map(a => `
-          <tr>
-            <td>${a.client?.name || a.client?.email}</td>
-            <td>${a.table?.name} <span style="color:var(--text-light);font-size:11px">${a.table?.code || ''}</span></td>
-            <td>${new Date(a.assigned_at).toLocaleDateString('es-ES')}</td>
-            <td><button class="btn-small btn-danger" onclick="removeAssignment('${a.id}')">Quitar</button></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`
-    : '<div class="empty"><p>No hay asignaciones activas.</p></div>';
 }
 
-async function assignTable() {
-  const clientId = document.getElementById('assign-client').value;
-  const tableId = document.getElementById('assign-table').value;
-  if (!clientId || !tableId) return alert('Selecciona cliente y tabla');
-  await db.from('client_tables').insert({ client_id: clientId, table_id: tableId });
-  showToast('✅ Tabla asignada correctamente');
-  renderAssign();
+async function selectAssignClient(clientId) {
+  window._assignClientId = clientId;
+  const client = window._assignClients.find(c=>c.id===clientId);
+  document.querySelectorAll('[id^="assign-client-"]').forEach(el=>{ el.style.borderColor='#E8ECF0'; el.style.background='white'; });
+  document.getElementById(`assign-client-${clientId}`).style.borderColor='var(--dark)'; 
+  document.getElementById(`assign-client-${clientId}`).style.background='#EBF5FB';
+  document.getElementById('assign-client-name').textContent=client?.name||client?.email;
+  document.getElementById('week-planner-section').classList.remove('hidden');
+
+  // Load existing plan
+  const { data: existing } = await db.from('client_tables').select('*').eq('client_id', clientId).not('day_of_week', 'is', null);
+  window._assignWeekPlan = {};
+  existing?.forEach(row=>{ if(row.day_of_week!=null) window._assignWeekPlan[row.day_of_week]=row.table_id; });
+  renderWeekPlanner();
 }
 
-async function removeAssignment(id) {
-  await db.from('client_tables').delete().eq('id', id);
-  showToast('🗑 Asignación eliminada');
-  renderAssign();
+function renderWeekPlanner() {
+  const planner = document.getElementById('week-planner'); if (!planner) return;
+  planner.innerHTML = DAYS.map((day,i)=>{
+    const tid = window._assignWeekPlan[i];
+    const table = tid ? window._assignTables.find(t=>t.id===tid) : null;
+    return `
+      <div class="day-slot${table?' has-table':''}" id="day-slot-${i}">
+        <div class="day-name">${day.substring(0,3)}</div>
+        ${table?`<div class="day-table-assigned">${table.name}<span class="remove-day" onclick="removeDayTable(${i})">✕ quitar</span></div>`:''}
+        <button class="day-add-btn" onclick="openDayTablePicker(${i})" title="Asignar tabla">+</button>
+      </div>`;
+  }).join('');
+}
+
+function openDayTablePicker(dayIdx) {
+  const day = DAYS[dayIdx];
+  document.getElementById('modal-content').innerHTML = `
+    <h3>📅 ${day} — Selecciona tabla</h3>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:16px">Elige qué tabla entrena el cliente este día</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${window._assignTables.map(t=>`
+        <div onclick="assignDayTable(${dayIdx},'${t.id}')" style="padding:12px 16px;border:1.5px solid #E8ECF0;border-radius:10px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:12px"
+          onmouseover="this.style.borderColor='var(--blue)';this.style.background='#EBF5FB'" onmouseout="this.style.borderColor='#E8ECF0';this.style.background='white'">
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--dark)">${t.name}</div>
+            <div style="font-size:11px;color:var(--text-light);margin-top:2px">${t.objective||'General'} · ${t.level||'Intermedio'}</div>
+          </div>
+          <span style="margin-left:auto;color:var(--blue);font-size:20px;font-weight:700">+</span>
+        </div>`).join('')}
+    </div>
+    <div class="modal-footer"><button class="btn-small" onclick="closeModal()">Cancelar</button></div>`;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function assignDayTable(dayIdx, tableId) {
+  window._assignWeekPlan[dayIdx] = tableId;
+  closeModal(); renderWeekPlanner();
+}
+
+function removeDayTable(dayIdx) {
+  delete window._assignWeekPlan[dayIdx]; renderWeekPlanner();
+}
+
+function clearWeekPlan() {
+  if (!confirm('¿Limpiar toda la planificación de esta semana?')) return;
+  window._assignWeekPlan = {}; renderWeekPlanner();
+}
+
+async function saveWeekPlan() {
+  if (!window._assignClientId) return;
+  // Delete existing day assignments for this client
+  await db.from('client_tables').delete().eq('client_id', window._assignClientId).not('day_of_week', 'is', null);
+  // Insert new ones
+  const rows = Object.entries(window._assignWeekPlan).map(([day, tableId])=>({
+    client_id: window._assignClientId, table_id: tableId,
+    day_of_week: parseInt(day), active: true,
+  }));
+  if (rows.length) await db.from('client_tables').insert(rows);
+  showToast('✅ Planificación guardada');
 }
 
 // ─── EXERCISES ───────────────────────────────────────────────
 async function renderExercises() {
   const { data: exercises } = await db.from('exercises').select('*').order('name');
-
   document.getElementById('topbar-actions').innerHTML = `<button class="btn-small btn-blue" onclick="showAddExercise()">➕ Añadir ejercicio</button>`;
-
   document.getElementById('main-content').innerHTML = `
     <div class="admin-section">
-      <h3>💪 Base de datos (${exercises?.length || 0} ejercicios)</h3>
+      <h3>💪 Base de datos (${exercises?.length||0} ejercicios)</h3>
       <input type="text" placeholder="🔍 Buscar ejercicio..." oninput="filterExercises(this.value)"
         style="width:100%;padding:10px 14px;border:1.5px solid #E0E0E0;border-radius:8px;font-size:14px;margin-bottom:16px;outline:none">
-      <div id="ex-table-container">
-        ${renderExerciseTable(exercises)}
-      </div>
+      <div id="ex-table-container">${renderExerciseTable(exercises)}</div>
     </div>`;
-
-  window._allExercises = exercises || [];
+  window._allExercises = exercises||[];
 }
-
 function renderExerciseTable(exercises) {
   if (!exercises?.length) return '<div class="empty"><p>No hay ejercicios. Añade el primero.</p></div>';
-  return `<table class="data-table">
-    <thead><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Región</th><th>Vídeo</th></tr></thead>
-    <tbody>${exercises.map(e => `
-      <tr>
-        <td><code>${e.code || '—'}</code></td>
-        <td><strong>${e.name}</strong></td>
-        <td>${e.category || '—'}</td>
-        <td>${e.body_part || '—'}</td>
-        <td>${e.youtube_url ? `<a href="${e.youtube_url}" target="_blank" style="color:var(--blue)">▶ Ver</a>` : '—'}</td>
-      </tr>`).join('')}
-    </tbody>
-  </table>`;
+  return `<table class="data-table"><thead><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Región</th><th>Vídeo</th></tr></thead>
+    <tbody>${exercises.map(e=>`<tr><td><code>${e.code||'—'}</code></td><td><strong>${e.name}</strong></td><td>${e.category||'—'}</td><td>${e.body_part||'—'}</td>
+      <td>${e.youtube_url?`<a href="${e.youtube_url}" target="_blank" style="color:var(--blue)">▶ Ver</a>`:'—'}</td></tr>`).join('')}</tbody></table>`;
 }
-
 function filterExercises(q) {
-  const filtered = window._allExercises.filter(e => e.name.toLowerCase().includes(q.toLowerCase()) || (e.code || '').includes(q));
-  document.getElementById('ex-table-container').innerHTML = renderExerciseTable(filtered);
+  const filtered=window._allExercises.filter(e=>e.name.toLowerCase().includes(q.toLowerCase())||(e.code||'').includes(q));
+  document.getElementById('ex-table-container').innerHTML=renderExerciseTable(filtered);
 }
-
 function showAddExercise() {
   document.getElementById('modal-content').innerHTML = `
     <h3>➕ Añadir ejercicio</h3>
@@ -897,138 +1021,81 @@ function showAddExercise() {
       </div>
     </div>
     <div class="form-row">
-      <div class="form-group-inline"><label>Región</label>
-        <select id="m-body"><option>Tren Superior</option><option>Tren Inferior</option><option>Full Body</option></select>
-      </div>
-      <div class="form-group-inline"><label>Lateralidad</label>
-        <select id="m-lat"><option>Bilateral</option><option>Unilateral</option><option>Split</option></select>
-      </div>
+      <div class="form-group-inline"><label>Región</label><select id="m-body"><option>Tren Superior</option><option>Tren Inferior</option><option>Full Body</option></select></div>
+      <div class="form-group-inline"><label>Lateralidad</label><select id="m-lat"><option>Bilateral</option><option>Unilateral</option><option>Split</option></select></div>
     </div>
     <div class="form-group-inline"><label>Descripción</label><textarea id="m-desc" rows="3" placeholder="Descripción del ejercicio..."></textarea></div>
-    <div class="modal-footer">
-      <button class="btn-small" onclick="closeModal()">Cancelar</button>
-      <button class="btn-small btn-success" onclick="saveExercise()">💾 Guardar</button>
-    </div>`;
+    <div class="modal-footer"><button class="btn-small" onclick="closeModal()">Cancelar</button><button class="btn-small btn-success" onclick="saveExercise()">💾 Guardar</button></div>`;
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
-
 async function saveExercise() {
-  const name = document.getElementById('m-name').value;
-  if (!name) return alert('El nombre es obligatorio');
-  await db.from('exercises').insert({
-    name, code: document.getElementById('m-code').value,
-    youtube_url: document.getElementById('m-url').value,
-    category: document.getElementById('m-cat').value,
-    body_part: document.getElementById('m-body').value,
-    laterality: document.getElementById('m-lat').value,
-    description: document.getElementById('m-desc').value,
-  });
-  closeModal();
-  showToast('✅ Ejercicio añadido');
-  renderExercises();
+  const name=document.getElementById('m-name').value; if(!name) return alert('El nombre es obligatorio');
+  await db.from('exercises').insert({ name, code:document.getElementById('m-code').value, youtube_url:document.getElementById('m-url').value, category:document.getElementById('m-cat').value, body_part:document.getElementById('m-body').value, laterality:document.getElementById('m-lat').value, description:document.getElementById('m-desc').value });
+  closeModal(); showToast('✅ Ejercicio añadido'); renderExercises();
 }
 
 // ─── MY TABLES (CLIENT) ──────────────────────────────────────
 async function renderMyTables() {
-  const { data: assignments } = await db.from('client_tables')
-    .select('*, table:workout_tables(*)')
-    .eq('client_id', currentUser.id)
-    .eq('active', true);
-
+  // Load assignments with day info
+  const { data: assignments } = await db.from('client_tables').select('*, table:workout_tables(*)').eq('client_id', currentUser.id).eq('active', true);
   if (!assignments?.length) {
-    document.getElementById('main-content').innerHTML = `
-      <div class="empty">
-        <p style="font-size:40px;margin-bottom:16px">🏋️</p>
-        <p>Tu entrenador aún no te ha asignado ninguna tabla.<br>¡En breve tendrás tu entrenamiento listo!</p>
-      </div>`;
-    return;
+    document.getElementById('main-content').innerHTML=`<div class="empty"><p style="font-size:40px;margin-bottom:16px">🏋️</p><p>Tu entrenador aún no te ha asignado ninguna tabla.<br>¡En breve tendrás tu entrenamiento listo!</p></div>`; return;
   }
 
-  const objColors = { hipertrofia: 'badge-h', fuerza: 'badge-f', 'alto rendimiento': 'badge-ar', salud: 'badge-s' };
-  document.getElementById('main-content').innerHTML = `
-    <div class="tables-grid">
-      ${assignments.map(a => `
-        <div class="table-card" onclick="viewTable('${a.table.id}')">
-          <div class="table-card-header">
-            <span class="table-badge ${objColors[a.table.objective?.toLowerCase()] || 'badge-f'}">${a.table.objective || 'General'}</span>
-          </div>
-          <h3>${a.table.name}</h3>
-          <p>${a.table.notes || ''}</p>
-          <div class="table-card-footer">
-            <span class="chip">📊 ${a.table.level || 'Intermedio'}</span>
-            <span class="chip">🔄 ${a.table.frequency || '2x/semana'}</span>
-          </div>
-        </div>`).join('')}
+  // Group by day_of_week
+  const withDay = assignments.filter(a=>a.day_of_week!=null);
+  const withoutDay = assignments.filter(a=>a.day_of_week==null);
+  const objColors={hipertrofia:'badge-h',fuerza:'badge-f','alto rendimiento':'badge-ar',salud:'badge-s'};
+
+  let html = '';
+  if (withDay.length) {
+    html += `<div class="admin-section" style="margin-bottom:20px"><h3>📅 Tu semana</h3>
+      <div class="week-planner">
+        ${DAYS.map((day,i)=>{
+          const dayAssigns = withDay.filter(a=>a.day_of_week===i);
+          return `<div class="day-slot${dayAssigns.length?' has-table':''}">
+            <div class="day-name">${day.substring(0,3)}</div>
+            ${dayAssigns.map(a=>`<div class="day-table-assigned" style="cursor:pointer" onclick="viewTable('${a.table.id}')">${a.table.name}</div>`).join('')}
+            ${!dayAssigns.length?`<div style="text-align:center;font-size:22px;color:#BDC3C7;padding:12px 0">—</div>`:''}
+          </div>`;}).join('')}
+      </div>
     </div>`;
+  }
+
+  html += `<div class="tables-grid">${(withDay.length?withDay:assignments).filter((a,i,arr)=>arr.findIndex(x=>x.table.id===a.table.id)===i).map(a=>`
+    <div class="table-card" onclick="viewTable('${a.table.id}')">
+      <div class="table-card-header"><span class="table-badge ${objColors[a.table.objective?.toLowerCase()]||'badge-f'}">${a.table.objective||'General'}</span></div>
+      <h3>${a.table.name}</h3><p>${a.table.notes||''}</p>
+      <div class="table-card-footer"><span class="chip">📊 ${a.table.level||'Intermedio'}</span><span class="chip">🔄 ${a.table.frequency||'2x/semana'}</span></div>
+    </div>`).join('')}</div>`;
+
+  document.getElementById('main-content').innerHTML = html;
 }
 
 // ─── PROGRESS (CLIENT) ───────────────────────────────────────
 async function renderProgress() {
-  const { data: logs } = await db.from('workout_logs')
-    .select('*, table_exercise:table_exercises(*, exercise:exercises(name))')
-    .eq('client_id', currentUser.id)
-    .order('logged_at', { ascending: false })
-    .limit(50);
-
-  if (!logs?.length) {
-    document.getElementById('main-content').innerHTML = `<div class="empty"><p>Aún no tienes registros.<br>Empieza a entrenar y registra tus pesos.</p></div>`;
-    return;
-  }
-
-  const grouped = {};
-  logs.forEach(log => {
-    const name = log.table_exercise?.exercise?.name || 'Ejercicio';
-    if (!grouped[name]) grouped[name] = [];
-    grouped[name].push(log);
-  });
-
-  document.getElementById('main-content').innerHTML = Object.entries(grouped).slice(0, 6).map(([name, exLogs]) => {
-    const maxWeights = exLogs.map(l => Math.max(...(l.sets_data?.map(s => s.weight) || [0])));
-    const maxH = Math.max(...maxWeights, 1);
-    return `
-      <div class="chart-container" style="margin-bottom:16px">
-        <h3 style="font-size:14px;font-weight:700;color:var(--dark);margin-bottom:8px">💪 ${name}</h3>
-        <div class="chart-bars">
-          ${exLogs.slice(0, 8).reverse().map((log, i) => {
-            const w = Math.max(...(log.sets_data?.map(s => s.weight) || [0]));
-            const h = Math.round((w / maxH) * 100);
-            return `<div class="chart-bar" style="height:${h}%">
-              <span class="bar-value">${w}kg</span>
-              <span class="bar-label">${new Date(log.logged_at).toLocaleDateString('es-ES', {day:'2-digit',month:'2-digit'})}</span>
-            </div>`;
-          }).join('')}
-        </div>
-        <div style="margin-top:30px;font-size:12px;color:var(--text-light)">${exLogs.length} sesiones registradas</div>
-      </div>`;
+  const { data: logs } = await db.from('workout_logs').select('*, table_exercise:table_exercises(*, exercise:exercises(name))').eq('client_id', currentUser.id).order('logged_at', { ascending: false }).limit(50);
+  if (!logs?.length) { document.getElementById('main-content').innerHTML=`<div class="empty"><p>Aún no tienes registros.<br>Empieza a entrenar y registra tus pesos.</p></div>`; return; }
+  const grouped={};
+  logs.forEach(log=>{ const name=log.table_exercise?.exercise?.name||'Ejercicio'; if(!grouped[name]) grouped[name]=[]; grouped[name].push(log); });
+  document.getElementById('main-content').innerHTML = Object.entries(grouped).slice(0,6).map(([name,exLogs])=>{
+    const maxW=exLogs.map(l=>Math.max(...(l.sets_data?.map(s=>s.weight)||[0]))); const maxH=Math.max(...maxW,1);
+    return `<div class="chart-container" style="margin-bottom:16px"><h3 style="font-size:14px;font-weight:700;color:var(--dark);margin-bottom:8px">💪 ${name}</h3>
+      <div class="chart-bars">${exLogs.slice(0,8).reverse().map((log)=>{const w=Math.max(...(log.sets_data?.map(s=>s.weight)||[0]));const h=Math.round((w/maxH)*100);return`<div class="chart-bar" style="height:${h}%"><span class="bar-value">${w}kg</span><span class="bar-label">${new Date(log.logged_at).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})}</span></div>`;}).join('')}</div>
+      <div style="margin-top:30px;font-size:12px;color:var(--text-light)">${exLogs.length} sesiones registradas</div></div>`;
   }).join('');
 }
 
 // ─── UTILS ───────────────────────────────────────────────────
-function closeModal() {
-  document.getElementById('modal-overlay').classList.add('hidden');
-}
-document.getElementById('modal-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-});
-
+function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+document.getElementById('modal-overlay').addEventListener('click', e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
 function showToast(msg) {
-  const t = document.createElement('div');
-  t.className = 'success-toast';
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
+  const t=document.createElement('div'); t.className='success-toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
 }
-
-// Add event listeners when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('btn-login').addEventListener('click', login);
-  document.getElementById('btn-register').addEventListener('click', register);
-  document.getElementById('login-password').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') login();
-  });
-  document.getElementById('reg-password').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') register();
-  });
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('login-password').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
+  document.getElementById('reg-password').addEventListener('keydown', e=>{ if(e.key==='Enter') register(); });
 });
 </script>
 </body>
