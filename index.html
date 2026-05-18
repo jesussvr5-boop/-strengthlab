@@ -72,8 +72,14 @@
   .badge-s { background: #E8F4F8; color: #2980B9; }
   .table-card h3 { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
   .table-card p { font-size: 12px; color: var(--text-light); }
-  .table-card-footer { margin-top: 14px; display: flex; gap: 8px; }
+  .table-card-footer { margin-top: 14px; display: flex; gap: 8px; align-items: center; }
   .chip { padding: 4px 10px; background: var(--gray); border-radius: 20px; font-size: 11px; color: var(--text-light); }
+  .table-card-actions { margin-top: 12px; display: flex; gap: 8px; border-top: 1px solid #F0F0F0; padding-top: 12px; }
+  .tc-btn { padding: 6px 14px; border: none; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .tc-btn-edit { background: var(--light-blue); color: var(--dark); }
+  .tc-btn-edit:hover { background: var(--blue); color: white; }
+  .tc-btn-view { background: var(--gray); color: var(--text); }
+  .tc-btn-view:hover { background: #E0E0E0; }
 
   /* WORKOUT VIEW */
   .workout-header { background: linear-gradient(135deg, var(--dark), var(--blue)); color: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
@@ -499,10 +505,14 @@ async function renderTables() {
   document.getElementById('topbar-actions').innerHTML = `<button class="btn-small btn-blue" onclick="navigateTo('create-table')">➕ Nueva tabla</button>`;
   document.getElementById('main-content').innerHTML = tables?.length
     ? `<div class="tables-grid">${tables.map(t => `
-        <div class="table-card" onclick="viewTable('${t.id}')">
+        <div class="table-card">
           <div class="table-card-header"><span class="table-badge ${objColors[t.objective?.toLowerCase()]||'badge-f'}">${t.objective||'General'}</span><span style="font-size:11px;color:var(--text-light)">${t.code||''}</span></div>
           <h3>${t.name}</h3><p>${t.notes||'Sin descripción'}</p>
           <div class="table-card-footer"><span class="chip">📊 ${t.level||'Intermedio'}</span><span class="chip">🔄 ${t.frequency||'2x/semana'}</span></div>
+          <div class="table-card-actions">
+            <button class="tc-btn tc-btn-view" onclick="viewTable('${t.id}')">👁 Ver</button>
+            <button class="tc-btn tc-btn-edit" onclick="renderEditTable('${t.id}')">✏️ Editar</button>
+          </div>
         </div>`).join('')}</div>`
     : `<div class="empty"><p>No hay tablas aún.</p></div>`;
 }
@@ -571,6 +581,223 @@ async function deleteTable(id) {
   await db.from('workout_tables').delete().eq('id', id);
   showToast('🗑 Tabla eliminada'); navigateTo('tables');
 }
+
+// ─── EDIT TABLE ──────────────────────────────────────────────
+async function renderEditTable(tableId) {
+  document.getElementById('main-content').innerHTML = '<div class="loading">Cargando tabla...</div>';
+
+  const [{ data: table }, { data: exs }, { data: allExercises }] = await Promise.all([
+    db.from('workout_tables').select('*').eq('id', tableId).single(),
+    db.from('table_exercises').select('*, exercise:exercises(*)').eq('table_id', tableId).order('order_index'),
+    db.from('exercises').select('*').order('name'),
+  ]);
+
+  window._editTableId = tableId;
+  window._editExercises = (exs||[]).map((e,i) => ({
+    _rowId: e.id,
+    exercise_id: e.exercise_id,
+    name: e.exercise?.name || 'Ejercicio',
+    muscle: e.exercise?.body_part || e.exercise?.category || '',
+    phase: e.phase || 'PPAL',
+    sets: String(e.sets||''), reps: e.reps||'', rir: e.rir||'',
+    tempo: e.tempo||'', rest_between_sets: e.rest_between_sets||'',
+    rest_after: e.rest_after||'', notes: e.notes||'',
+    order_index: i,
+  }));
+  window._editOpenDetail = null;
+  window._editDragSrc = null;
+  window._editAllEx = allExercises || [];
+  window._editMuscleFilter = 'todos';
+
+  document.getElementById('page-title').textContent = 'Editando: ' + table.name;
+
+  document.getElementById('main-content').innerHTML = `
+    <button onclick="navigateTo('tables')" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:14px;margin-bottom:16px;">← Volver sin guardar</button>
+
+    <div class="admin-section" style="margin-bottom:16px">
+      <h3>📋 Información de la tabla</h3>
+      <div class="form-row">
+        <div class="form-group-inline"><label>Nombre *</label><input id="et-name" value="${table.name||''}"></div>
+        <div class="form-group-inline"><label>Código</label><input id="et-code" value="${table.code||''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-inline"><label>Objetivo</label>
+          <select id="et-obj">
+            ${['Hipertrofia','Fuerza','Fuerza + Hipertrofia','Potencia','Resistencia muscular','Funcional','Rendimiento deportivo','Pérdida de grasa'].map(o=>`<option ${table.objective===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group-inline"><label>Nivel</label>
+          <select id="et-level">
+            ${['Principiante','Intermedio','Avanzado'].map(l=>`<option ${table.level===l?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-inline"><label>Frecuencia</label><input id="et-freq" value="${table.frequency||''}"></div>
+        <div class="form-group-inline"><label>Notas</label><input id="et-notes" value="${table.notes||''}"></div>
+      </div>
+    </div>
+
+    <div class="builder-layout">
+      <div class="builder-left">
+        <div class="builder-left-header">
+          <h3>Ejercicios de la tabla</h3>
+          <button onclick="saveEditTable()" style="background:var(--green);color:white;border:none;padding:9px 20px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">💾 Guardar cambios</button>
+        </div>
+        <div class="builder-ex-list" id="edit-ex-list"></div>
+      </div>
+      <div class="builder-right">
+        <div class="builder-right-header">
+          <input class="builder-search" id="edit-search" type="text" placeholder="Buscar ejercicio para añadir..." oninput="renderEditResults()">
+        </div>
+        <div class="muscle-filters-wrap" id="edit-muscle-filters"></div>
+        <div class="ex-results-list" id="edit-results"></div>
+      </div>
+    </div>`;
+
+  renderEditMuscleFilters();
+  renderEditResults();
+  renderEditList();
+}
+
+function renderEditMuscleFilters() {
+  const muscles = ['todos', ...new Set(window._editAllEx.map(e=>e.body_part||e.category||'').filter(Boolean))];
+  const wrap = document.getElementById('edit-muscle-filters'); if (!wrap) return;
+  wrap.innerHTML = muscles.map(m=>`<div class="mf-pill${m===window._editMuscleFilter?' active':''}" onclick="setEditMuscle('${m}')">${m==='todos'?'Todos':m}</div>`).join('');
+}
+function setEditMuscle(m) { window._editMuscleFilter=m; renderEditMuscleFilters(); renderEditResults(); }
+
+function renderEditResults() {
+  const q = (document.getElementById('edit-search')?.value||'').toLowerCase();
+  const addedIds = new Set(window._editExercises.map(e=>e.exercise_id));
+  let list = window._editAllEx;
+  if (window._editMuscleFilter!=='todos') list=list.filter(e=>(e.body_part||e.category||'')===window._editMuscleFilter);
+  if (q) list=list.filter(e=>e.name.toLowerCase().includes(q)||(e.code||'').toLowerCase().includes(q));
+  const cont = document.getElementById('edit-results'); if (!cont) return;
+  cont.innerHTML = list.length
+    ? list.map(e=>{
+        const added = addedIds.has(e.id);
+        const clickAttr = added ? '' : `onclick="editAddExercise('${e.id}')"`;
+        return `<div class="ex-result-row${added?' added':''}" ${clickAttr}>
+          <div><div class="ex-result-name">${e.name}</div><div class="ex-result-meta">${e.code?e.code+' · ':''}${e.body_part||e.category||''}</div></div>
+          <span class="${added?'added-ex-check':'add-ex-btn'}">${added?'✓':'+'}</span>
+        </div>`;
+      }).join('')
+    : '<div style="text-align:center;color:var(--text-light);padding:24px;font-size:13px">Sin resultados</div>';
+}
+
+function editAddExercise(exId) {
+  const ex = window._editAllEx.find(e=>e.id===exId); if (!ex) return;
+  window._editExercises.push({ exercise_id:ex.id, name:ex.name, muscle:ex.body_part||ex.category||'', phase:'PPAL', sets:'3', reps:'', rir:'', tempo:'', rest_between_sets:'', rest_after:'', notes:'', order_index:window._editExercises.length });
+  renderEditList(); renderEditResults();
+}
+function editRemoveExercise(idx) {
+  window._editExercises.splice(idx,1);
+  window._editExercises.forEach((e,i)=>e.order_index=i);
+  if (window._editOpenDetail===idx) window._editOpenDetail=null;
+  renderEditList(); renderEditResults();
+}
+function editToggleDetail(idx) { window._editOpenDetail=window._editOpenDetail===idx?null:idx; renderEditList(); }
+function editUpdateField(idx, field, val) { if (window._editExercises[idx]) window._editExercises[idx][field]=val; }
+function editDrop(toIdx) {
+  const from=window._editDragSrc; if(from===null||from===toIdx) return;
+  const arr=window._editExercises; const [moved]=arr.splice(from,1); arr.splice(toIdx,0,moved);
+  arr.forEach((e,i)=>e.order_index=i); window._editDragSrc=null;
+  if(window._editOpenDetail===from) window._editOpenDetail=toIdx;
+  renderEditList();
+}
+
+function renderEditList() {
+  const cont = document.getElementById('edit-ex-list'); if (!cont) return;
+  if (!window._editExercises.length) {
+    cont.innerHTML='<div class="builder-empty">📋<br>No hay ejercicios.<br>Añade desde el buscador de la derecha.</div>'; return;
+  }
+  cont.innerHTML = window._editExercises.map((ex,i)=>{
+    const params=[]; if(ex.sets) params.push(ex.sets+' series'); if(ex.reps) params.push(ex.reps+' reps'); if(ex.rir) params.push(ex.rir); if(ex.rest_between_sets) params.push(ex.rest_between_sets+' desc.');
+    return `
+      <div class="bex-item" draggable="true"
+        ondragstart="window._editDragSrc=${i}"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="this.classList.remove('drag-over');editDrop(${i})">
+        <span class="bex-drag">⠿</span>
+        <div class="bex-num">${i+1}</div>
+        <div class="bex-info">
+          <div class="bex-name">${ex.name}</div>
+          <div class="bex-sub">${ex.muscle}</div>
+          ${params.length?`<div class="bex-params">${params.join(' · ')}</div>`:''}
+        </div>
+        <select onchange="editUpdateField(${i},'phase',this.value)" style="font-size:11px;border:1px solid #E0E0E0;border-radius:6px;padding:3px 6px;color:var(--text-light);background:white;cursor:pointer">
+          <option value="MOV" ${ex.phase==='MOV'?'selected':''}>🟢 Mov</option>
+          <option value="SNC" ${ex.phase==='SNC'?'selected':''}>🟠 SNC</option>
+          <option value="PPAL" ${ex.phase==='PPAL'?'selected':''}>🔵 Ppal</option>
+          <option value="COMP" ${ex.phase==='COMP'?'selected':''}>🟣 Comp</option>
+        </select>
+        <button class="bex-btn" onclick="editToggleDetail(${i})" title="Configurar series, reps, RIR...">⋯</button>
+        <button class="bex-btn del" onclick="editRemoveExercise(${i})" title="Quitar ejercicio">✕</button>
+      </div>
+      ${window._editOpenDetail===i ? `
+        <div class="bex-detail">
+          <div class="bex-detail-title">⚙️ ${ex.name}</div>
+          <div class="bex-detail-grid">
+            <div class="bex-detail-field"><label class="bex-detail-label">Series</label><input class="bex-detail-input" type="number" min="1" placeholder="ej. 4" value="${ex.sets}" oninput="editUpdateField(${i},'sets',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">Reps / Tiempo</label><input class="bex-detail-input" type="text" placeholder="ej. 8-10" value="${ex.reps}" oninput="editUpdateField(${i},'reps',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">RIR</label><input class="bex-detail-input" type="text" placeholder="ej. RIR 1-2" value="${ex.rir}" oninput="editUpdateField(${i},'rir',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">Tempo</label><input class="bex-detail-input" type="text" placeholder="ej. 3-1-2" value="${ex.tempo}" oninput="editUpdateField(${i},'tempo',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">Descanso entre series</label><input class="bex-detail-input" type="text" placeholder="ej. 90s" value="${ex.rest_between_sets}" oninput="editUpdateField(${i},'rest_between_sets',this.value)"></div>
+            <div class="bex-detail-field"><label class="bex-detail-label">Descanso tras ejercicio</label><input class="bex-detail-input" type="text" placeholder="ej. 2 min" value="${ex.rest_after}" oninput="editUpdateField(${i},'rest_after',this.value)"></div>
+          </div>
+          <div class="bex-detail-field" style="margin-bottom:10px">
+            <label class="bex-detail-label">Nota / Indicaciones</label>
+            <textarea class="bex-detail-note" placeholder="Indicaciones técnicas, variantes..." oninput="editUpdateField(${i},'notes',this.value)">${ex.notes}</textarea>
+          </div>
+          <button onclick="editToggleDetail(${i})" style="background:var(--dark);color:white;border:none;padding:7px 16px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer">Listo ✓</button>
+        </div>` : ''}`;
+  }).join('');
+}
+
+async function saveEditTable() {
+  const name = document.getElementById('et-name')?.value?.trim();
+  if (!name) { alert('El nombre es obligatorio'); return; }
+
+  // Update table metadata
+  const { error: tableErr } = await db.from('workout_tables').update({
+    name,
+    code: document.getElementById('et-code')?.value,
+    objective: document.getElementById('et-obj')?.value,
+    level: document.getElementById('et-level')?.value,
+    frequency: document.getElementById('et-freq')?.value,
+    notes: document.getElementById('et-notes')?.value,
+  }).eq('id', window._editTableId);
+  if (tableErr) { alert('Error al guardar: ' + tableErr.message); return; }
+
+  // Delete all existing exercises for this table
+  await db.from('table_exercises').delete().eq('table_id', window._editTableId);
+
+  // Re-insert updated list
+  if (window._editExercises.length > 0) {
+    const rows = window._editExercises.map((e,i) => ({
+      table_id: window._editTableId,
+      exercise_id: e.exercise_id,
+      phase: e.phase,
+      sets: parseInt(e.sets)||3,
+      reps: e.reps,
+      rir: e.rir,
+      tempo: e.tempo,
+      rest_between_sets: e.rest_between_sets,
+      rest_after: e.rest_after,
+      notes: e.notes,
+      order_index: i,
+    }));
+    const { error: exErr } = await db.from('table_exercises').insert(rows);
+    if (exErr) { alert('Error al guardar ejercicios: ' + exErr.message); return; }
+  }
+
+  showToast('✅ Tabla actualizada correctamente');
+  navigateTo('tables');
+}
+
+
 
 // ─── CREATE TABLE (NUEVO BUILDER CON FASES) ──────────────────
 const GOALS_CONFIG = [
@@ -747,11 +974,14 @@ function renderBuilderResults() {
   if (q) list=list.filter(e=>e.name.toLowerCase().includes(q)||(e.code||'').toLowerCase().includes(q)||(e.category||'').toLowerCase().includes(q));
   const cont = document.getElementById('builder-results'); if (!cont) return;
   cont.innerHTML = list.length
-    ? list.map(e=>{ const added=addedIds.has(e.id); return `
-        <div class="ex-result-row${added?' added':''}" onclick="${added?'':'builderAddExercise(\''+e.id+'\')'}">
+    ? list.map(e=>{
+        const added = addedIds.has(e.id);
+        const clickAttr = added ? '' : `onclick="builderAddExercise('${e.id}')"`;
+        return `<div class="ex-result-row${added?' added':''}" ${clickAttr}>
           <div><div class="ex-result-name">${e.name}</div><div class="ex-result-meta">${e.code?e.code+' · ':''}${e.body_part||e.category||''}${e.laterality?' · '+e.laterality:''}</div></div>
           <span class="${added?'added-ex-check':'add-ex-btn'}">${added?'✓':'+'}</span>
-        </div>`; }).join('')
+        </div>`;
+      }).join('')
     : '<div style="text-align:center;color:var(--text-light);padding:24px;font-size:13px">Sin resultados</div>';
 }
 
